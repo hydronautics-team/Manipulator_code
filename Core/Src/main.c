@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdint.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -111,7 +110,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, RESET);
+	  /*HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, RESET);
 	  HAL_UART_Receive_IT(&huart1, receiveBuffer, BUFFER_SIZE);
 	  if(receiveBuffer[0] == 'a')
 	  {
@@ -130,7 +129,15 @@ int main(void)
 		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, RESET);
 	  }
 	  HAL_Delay(20);
+	  */
 
+	 /* if(pwm_value == 0) step = 1;
+	  if(pwm_value == 399) step = -1;
+	  pwm_value += step;
+	  setPWM(pwm_value);
+	  HAL_Delay(5);
+	  */
+	  set_speed(0, 1);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

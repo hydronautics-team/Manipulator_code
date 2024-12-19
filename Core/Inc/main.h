@@ -28,8 +28,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-#include <Servo.h>
-#include <stdint.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -61,6 +59,34 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SRV1_FB_Pin GPIO_PIN_2
+#define SRV1_FB_GPIO_Port GPIOA
+#define SRV2_FB_Pin GPIO_PIN_3
+#define SRV2_FB_GPIO_Port GPIOA
+#define SRV1_DIR_Pin GPIO_PIN_4
+#define SRV1_DIR_GPIO_Port GPIOA
+#define SRV2_DIR_Pin GPIO_PIN_5
+#define SRV2_DIR_GPIO_Port GPIOA
+#define SRV1_PWM_Pin GPIO_PIN_6
+#define SRV1_PWM_GPIO_Port GPIOA
+#define SRV2_PWM_Pin GPIO_PIN_7
+#define SRV2_PWM_GPIO_Port GPIOA
+#define RS485_DIR_Pin GPIO_PIN_8
+#define RS485_DIR_GPIO_Port GPIOA
+#define RS485_TX_Pin GPIO_PIN_9
+#define RS485_TX_GPIO_Port GPIOA
+#define RS485_RX_Pin GPIO_PIN_10
+#define RS485_RX_GPIO_Port GPIOA
+#define SWDIO_Pin GPIO_PIN_13
+#define SWDIO_GPIO_Port GPIOA
+#define SWCLOCK_Pin GPIO_PIN_14
+#define SWCLOCK_GPIO_Port GPIOA
+#define BUTTON_Pin GPIO_PIN_6
+#define BUTTON_GPIO_Port GPIOB
+#define LED_OK_Pin GPIO_PIN_7
+#define LED_OK_GPIO_Port GPIOB
+#define LED_ERROR_Pin GPIO_PIN_8
+#define LED_ERROR_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

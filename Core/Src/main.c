@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "Servo.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -49,6 +50,7 @@ UART_HandleTypeDef huart1;
 uint16_t pwm_value = 0;
 uint16_t period1;
 uint16_t period2;
+int16_t tim_buf;
 int8_t step = 0;
 uint8_t transmitBuffer[BUFFER_SIZE];
 uint8_t receiveBuffer[BUFFER_SIZE];
@@ -144,7 +146,7 @@ int main(void)
 	  	  	  setPWM(pwm_value);
 	  	  	  HAL_Delay(5);
 	  	  	  */
-	  	  	  //set_speed(0, 1);
+	  	  	  set_speed(100, &htim3, TIM_CHANNEL_1);
   }
   /* USER CODE END WHILE */
   /* USER CODE BEGIN 3 */
@@ -389,16 +391,31 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     {
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
         {
-            period1 = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
+        	period1 = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
+        	tim_buf -=  period1;
             TIM2->CNT = 0;
         }
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
         {
-            period2 = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4);
-            TIM2->CNT = 0;
+        	period2 = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4) - tim_buf;
+        	tim_buf = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4);
         }
     }
 }
+//ОБРАБОТАТЬ ПЕРЕПОЛНЕНИЕ РЕГИСТРА !!!!!!!!
+//ОБРАБОТАТЬ ПЕРЕПОЛНЕНИЕ РЕГИСТРА !!!!!!!!
+/*
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+        if(htim->Instance == TIM2) //check if the interrupt comes from TIM1
+        {
+
+        }
+}*/
+//ОБРАБОТАТЬ ПЕРЕПОЛНЕНИЕ РЕГИСТРА !!!!!!!!
+//ОБРАБОТАТЬ ПЕРЕПОЛНЕНИЕ РЕГИСТРА !!!!!!!!
+
+
 /* USER CODE END 4 */
 
 /**

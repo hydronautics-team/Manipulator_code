@@ -8,14 +8,6 @@
 
 #include "Servo.h"
 
-typedef struct
-{
-	uint16_t angle;
-	uint16_t speed;
-	uint16_t fb;
-	uint8_t dir;
-}Servo;
-
 void set_speed(uint16_t speed, TIM_HandleTypeDef *htim, uint16_t tim_channel)
 {
 

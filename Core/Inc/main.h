@@ -87,8 +87,6 @@ void Error_Handler(void);
 #define LED_OK_GPIO_Port GPIOB
 #define LED_ERROR_Pin GPIO_PIN_8
 #define LED_ERROR_GPIO_Port GPIOB
-#define Servo1 &htim3, TIM_CHANNEL_1
-#define Servo2 &htim3, TIM_CHANNEL_2
 
 /* USER CODE BEGIN Private defines */
 

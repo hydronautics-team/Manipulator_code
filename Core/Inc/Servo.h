@@ -18,7 +18,8 @@ typedef struct
 	uint16_t fb;
 	uint8_t dir;
 }Servo;
-
+//передавать структуру в функцию, добавить в структуру каналы таймера
+//инит для структуры, передается указатель на структуру, заполняет таймеры
 void set_speed(uint16_t speed, TIM_HandleTypeDef *htim, uint16_t tim_channel);
 void read_fb(uint16_t period, Servo *servo);
 

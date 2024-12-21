@@ -7,7 +7,8 @@
 
 
 #include "Servo.h"
-
+//read about changing pulse
+//__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, i)
 void set_speed(uint16_t speed, TIM_HandleTypeDef *htim, uint16_t tim_channel)
 {
 

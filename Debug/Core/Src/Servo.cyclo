@@ -1,2 +1,6 @@
 ../Core/Src/Servo.c:12:6:InitServos	1
-../Core/Src/Servo.c:26:6:SetSpeed	4
+../Core/Src/Servo.c:31:6:SetDirection	2
+../Core/Src/Servo.c:42:6:SetSpeed	4
+../Core/Src/Servo.c:46:6:ResetSpeed	4
+../Core/Src/Servo.c:51:6:Rotate	1
+../Core/Src/Servo.c:57:6:RotateByAngle	2

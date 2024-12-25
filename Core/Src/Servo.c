@@ -21,11 +21,45 @@ void InitServos(Servo *servo1, Servo *servo2, TIM_HandleTypeDef *htim_pwm, TIM_H
 
 	servo1->tim_channel_fb = SERVO1_FB_TIM_CHANNEL;
 	servo2->tim_channel_fb = SERVO2_FB_TIM_CHANNEL;
+
+	servo1->GPIOx = SRV1_FB_GPIO_Port;
+	servo2->GPIOx = SRV2_FB_GPIO_Port;
+	servo1->GPIO_Pin = SRV1_DIR_Pin;
+	servo2->GPIO_Pin = SRV2_DIR_Pin;
 }
 
+void SetDirection(Servo *srv)
+{
+	if(srv->dir == 1)
+	{
+		HAL_GPIO_WritePin(srv->GPIOx, srv->GPIO_Pin, SET);
+	}
+	if(srv->dir == -1)
+	{
+		HAL_GPIO_WritePin(srv->GPIOx, srv->GPIO_Pin, RESET);
+	}
+}
 void SetSpeed(Servo *srv)
 {
 	__HAL_TIM_SET_COMPARE(srv->tim_pwm, srv->tim_channel_pwm, srv->speed);
+}
+void ResetSpeed(Servo *srv)
+{
+	__HAL_TIM_SET_COMPARE(srv->tim_pwm, srv->tim_channel_pwm, TIM_PWM_COUNTER);
+}
+
+void Rotate(Servo *srv)
+{
+	SetDirection(srv);
+	SetSpeed(srv);
+}
+
+void RotateByAngle(Servo *srv)
+{
+	SetDirection(srv);
+	SetSpeed(srv);
+	while(srv->fb_angle < srv->angle) HAL_Delay(10);
+	ResetSpeed(srv);
 }
 
 /*void SetPwm(TIM_HandleTypeDef *htim, uint16_t tim_channel, uint16_t speed)

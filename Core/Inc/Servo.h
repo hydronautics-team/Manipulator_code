@@ -10,8 +10,10 @@
 
 #include "stm32f1xx_hal.h"
 #include "stdint.h"
+#include "main.h"
 
 #define TIM_FB_PERIOD 65535
+#define TIM_PWM_COUNTER 399
 #define SERVO1_PWM_TIM_CHANNEL TIM_CHANNEL_1
 #define SERVO2_PWM_TIM_CHANNEL TIM_CHANNEL_2
 #define SERVO1_FB_TIM_CHANNEL TIM_CHANNEL_3
@@ -30,12 +32,20 @@ typedef struct
 	TIM_HandleTypeDef *tim_fb;
 	uint16_t tim_channel_pwm;
 	uint16_t tim_channel_fb;
+
+	GPIO_TypeDef *GPIOx;
+	uint16_t * GPIO_Pin;
 }Servo;
 
-//инит для структуры, передается указатель на структуру, заполняет таймеры
-
-void SetSpeed(Servo *srv);
-//void SetPwm(TIM_HandleTypeDef *htim, uint16_t tim_channel, uint16_t speed);
 void InitServos(Servo *servo1, Servo *servo2, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb);
+
+void SetDirection(Servo *srv);
+void SetSpeed(Servo *srv);
+void ResetSpeed(Servo *srv);
+
+void Rotate(Servo *srv);
+void RotateByAngle(Servo *srv);
+
+//void SetPwm(TIM_HandleTypeDef *htim, uint16_t tim_channel, uint16_t speed);
 
 #endif /* INC_SERVO_H_ */

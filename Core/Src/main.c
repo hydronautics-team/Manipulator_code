@@ -113,6 +113,11 @@ int main(void)
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
 
+  servo2.dir = 1;
+  servo2.speed = 0;
+  servo2.angle = 500;
+  RotateByAngle(&servo2);
+
 //  for (uint8_t i = 0; i < BUFFER_SIZE; i++)
 //    {
 //            transmitBuffer[i] = 1;
@@ -160,10 +165,13 @@ int main(void)
 	  	  	  setPWM(399);
 
 	  	  	  */
-	  servo1.speed = 0;
-	  SetSpeed(&servo1);
-	  servo2.speed = 0;
-	  SetSpeed(&servo2);
+	  servo1.dir = 1;
+	  servo1.speed = 399;
+	  servo1.angle = 1000;
+	  Rotate(&servo1);
+
+
+	  //Rotate(&servo2);
 	  //SetPwm(&htim3, TIM_CHANNEL_1, 0);
 	  //SetPwm(&htim3, TIM_CHANNEL_2, 0);
   }
@@ -395,35 +403,41 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 //перетащить внутрянку в отдельную функцию
+//сделать обработку от шумов
+//подумать как лучше условие на servo->dir или += servo->dir;
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM2)
     {
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
         {
+        	servo1.fb_angle += servo1.dir;
+
         	captured_value =  HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
 
         	if(captured_value > tim_buf1)
         	{
-        		period1 = captured_value - tim_buf1;
+        		servo1.fb_speed = captured_value - tim_buf1;
         	}
         	else
         	{
-        		period1 = TIM_FB_PERIOD - tim_buf1 + captured_value;
+        		servo1.fb_speed = TIM_FB_PERIOD - tim_buf1 + captured_value;
         	}
         	tim_buf1 = captured_value;
         }
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
         {
+        	servo2.fb_angle += servo2.dir;
+
         	captured_value =  HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4);
 
         	if(captured_value > tim_buf2)
         	{
-        		period2 = captured_value - tim_buf2;
+        		servo2.fb_speed = captured_value - tim_buf2;
         	}
         	else
         	{
-        		period2 = TIM_FB_PERIOD - tim_buf2 + captured_value;
+        		servo2.fb_speed = TIM_FB_PERIOD - tim_buf2 + captured_value;
         	}
         	tim_buf2 = captured_value;
         }

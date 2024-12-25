@@ -26,8 +26,8 @@ typedef struct
 	uint16_t fb_angle;
 	uint16_t fb_speed;
 
-	TIM_HandleTypeDef *htim_pwm;
-	TIM_HandleTypeDef *htim_fb;
+	TIM_HandleTypeDef *tim_pwm;
+	TIM_HandleTypeDef *tim_fb;
 	uint16_t tim_channel_pwm;
 	uint16_t tim_channel_fb;
 }Servo;
@@ -35,6 +35,7 @@ typedef struct
 //инит для структуры, передается указатель на структуру, заполняет таймеры
 
 void SetSpeed(Servo *srv);
-void InitServos(Servo *servo1, Servo *servo2);
+//void SetPwm(TIM_HandleTypeDef *htim, uint16_t tim_channel, uint16_t speed);
+void InitServos(Servo *servo1, Servo *servo2, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb);
 
 #endif /* INC_SERVO_H_ */

@@ -55,6 +55,8 @@ uint16_t captured_value;
 int8_t step = 0;
 uint8_t transmitBuffer[BUFFER_SIZE];
 uint8_t receiveBuffer[BUFFER_SIZE];
+Servo servo1;
+Servo servo2;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,6 +106,7 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_TIM2_Init();
+  InitServos(&servo1, &servo2, &htim3, &htim2);
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
@@ -157,6 +160,12 @@ int main(void)
 	  	  	  setPWM(399);
 
 	  	  	  */
+	  servo1.speed = 0;
+	  SetSpeed(&servo1);
+	  servo2.speed = 0;
+	  SetSpeed(&servo2);
+	  //SetPwm(&htim3, TIM_CHANNEL_1, 0);
+	  //SetPwm(&htim3, TIM_CHANNEL_2, 0);
   }
     /* USER CODE END WHILE */
 
@@ -218,7 +227,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 8000;
+  htim2.Init.Prescaler = 100;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -416,7 +425,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
         	{
         		period2 = TIM_FB_PERIOD - tim_buf2 + captured_value;
         	}
-        	tim_buf1 = captured_value;
+        	tim_buf2 = captured_value;
         }
     }
 }

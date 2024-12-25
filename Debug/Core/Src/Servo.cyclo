@@ -1,2 +1,3 @@
-../Core/Src/Servo.c:11:6:set_speed	1
-../Core/Src/Servo.c:25:6:read_fb	1
+../Core/Src/Servo.c:12:6:InitServos	1
+../Core/Src/Servo.c:21:6:SetSpeed	4
+../Core/Src/Servo.c:37:6:ReadFb	1

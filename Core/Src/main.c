@@ -47,10 +47,11 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-uint16_t pwm_value = 0;
 uint16_t period1;
 uint16_t period2;
-int16_t tim_buf;
+int16_t tim_buf1;
+int16_t tim_buf2;
+uint16_t captured_value;
 int8_t step = 0;
 uint8_t transmitBuffer[BUFFER_SIZE];
 uint8_t receiveBuffer[BUFFER_SIZE];
@@ -63,7 +64,7 @@ static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-void setPWM(uint16_t pwm_value);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -146,14 +147,16 @@ int main(void)
 	  	  	  pwm_value += step;
 	  	  	  setPWM(pwm_value);
 	  	  	  HAL_Delay(5);
-	  	  	  */
+
 	  	  	  set_speed(380, &htim3, TIM_CHANNEL_1);
 	  	  	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, SET);
 	  	  	  transmitBuffer[0] = period1;
 	  	  	  HAL_UART_Transmit_IT(&huart1, transmitBuffer, BUFFER_SIZE);
 	  	  	  HAL_Delay(100);
 
-	  	  	  //setPWM(399);
+	  	  	  setPWM(399);
+
+	  	  	  */
   }
     /* USER CODE END WHILE */
 
@@ -381,17 +384,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-/*void setPWM(uint16_t value)
-{
-    TIM_OC_InitTypeDef sConfigOC;
-
-    sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.Pulse = value;
-    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-    HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-}*/
 
 //перетащить внутрянку в отдельную функцию
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
@@ -400,31 +392,34 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     {
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
         {
-        	period1 = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
-        	tim_buf -=  period1;
-            TIM2->CNT = 0;//хол функция для сброса регистра
+        	captured_value =  HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
+
+        	if(captured_value > tim_buf1)
+        	{
+        		period1 = captured_value - tim_buf1;
+        	}
+        	else
+        	{
+        		period1 = TIM_FB_PERIOD - tim_buf1 + captured_value;
+        	}
+        	tim_buf1 = captured_value;
         }
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
         {
-        	period2 = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4) - tim_buf;
-        	tim_buf = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4);//положить значение после вызова в отдельную переменную
+        	captured_value =  HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4);
+
+        	if(captured_value > tim_buf2)
+        	{
+        		period2 = captured_value - tim_buf2;
+        	}
+        	else
+        	{
+        		period2 = TIM_FB_PERIOD - tim_buf2 + captured_value;
+        	}
+        	tim_buf1 = captured_value;
         }
     }
 }
-//сделать для первой сервы как для второй
-//ОБРАБОТАТЬ ПЕРЕПОЛНЕН�?Е РЕГ�?СТРА !!!!!!!!
-//ОБРАБОТАТЬ ПЕРЕПОЛНЕН�?Е РЕГ�?СТРА !!!!!!!!
-/*
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-        if(htim->Instance == TIM2) //check if the interrupt comes from TIM1
-        {
-
-        }
-}*/
-//ОБРАБОТАТЬ ПЕРЕПОЛНЕН�?Е РЕГ�?СТРА !!!!!!!!
-//ОБРАБОТАТЬ ПЕРЕПОЛНЕН�?Е РЕГ�?СТРА !!!!!!!!
-
 
 /* USER CODE END 4 */
 

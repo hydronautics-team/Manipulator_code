@@ -106,17 +106,17 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_TIM2_Init();
-  InitServos(&servo1, &servo2, &htim3, &htim2);
+  InitServo(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
+  InitServo(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
 
-  servo2.dir = 1;
-  servo2.speed = 0;
-  servo2.angle = 500;
-  RotateByAngle(&servo2);
+  //servo1.angle = 100;
+  servo1.speed = 130;
+  //RotateByAngle(&servo2);
 
 //  for (uint8_t i = 0; i < BUFFER_SIZE; i++)
 //    {
@@ -148,32 +148,30 @@ int main(void)
 	  	  		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, RESET);
 	  	  	  }
 	  	  	  HAL_Delay(20);
-	  	  	  */
+		*/
 
 	  	  	 /* if(pwm_value == 0) step = 1;
 	  	  	  if(pwm_value == 399) step = -1;
 	  	  	  pwm_value += step;
 	  	  	  setPWM(pwm_value);
-	  	  	  HAL_Delay(5);
+	  	  	  HAL_Delay(5);*/
 
-	  	  	  set_speed(380, &htim3, TIM_CHANNEL_1);
+	  	  	  /*set_speed(380, &htim3, TIM_CHANNEL_1);
 	  	  	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, SET);
 	  	  	  transmitBuffer[0] = period1;
 	  	  	  HAL_UART_Transmit_IT(&huart1, transmitBuffer, BUFFER_SIZE);
 	  	  	  HAL_Delay(100);
 
-	  	  	  setPWM(399);
+	  	  	  setPWM(399);*/
 
-	  	  	  */
-	  servo1.dir = 1;
-	  servo1.speed = 399;
-	  servo1.angle = 1000;
-	  Rotate(&servo1);
+	  /*HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, SET);
+	  transmitBuffer[0] = 1;
+	  HAL_UART_Transmit_IT(&huart1, transmitBuffer, BUFFER_SIZE);
+	  HAL_Delay(100);*/
 
+	  //RotateByAngle(&servo1);
+	  //Rotate(&servo1);
 
-	  //Rotate(&servo2);
-	  //SetPwm(&htim3, TIM_CHANNEL_1, 0);
-	  //SetPwm(&htim3, TIM_CHANNEL_2, 0);
   }
     /* USER CODE END WHILE */
 
@@ -235,7 +233,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 100;
+  htim2.Init.Prescaler = 8000;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -404,14 +402,13 @@ static void MX_GPIO_Init(void)
 
 //перетащить внутрянку в отдельную функцию
 //сделать обработку от шумов
-//подумать как лучше условие на servo->dir или += servo->dir;
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM2)
     {
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
         {
-        	servo1.fb_angle += servo1.dir;
+        	servo1.fb_angle += servo1.direction;
 
         	captured_value =  HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
 
@@ -427,7 +424,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
         }
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
         {
-        	servo2.fb_angle += servo2.dir;
+        	servo2.fb_angle += servo2.direction;
 
         	captured_value =  HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4);
 

@@ -95,17 +95,42 @@ void RotateByAngle(Servo *srv)
 		ResetSpeed(srv);
 	}
 }
+
+
+void SetErrorServo(Servo *srv)
+{
+	ResetSpeed(srv);
+	srv->status = ServoStatusError;
+	HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, SET);
+}
+
+void ResetErrorServo(Servo *srv)
+{
+	srv->status = ServoStatusOK;
+	HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, RESET);
+}
+
+void ReadButton(Servo *srv)
+{
+	if(HAL_GPIO_ReadPin(LED_OK_GPIO_Port, LED_OK_Pin) == GPIO_PIN_RESET)
+	{
+		SetErrorServo(srv);
+	}
+}
+
+void ErrorHandlerServo(Servo *srv)
+{
+
+}
+
+
+
 //дописать!!!
 /*void CalibrateServo(Servo *srv)
 {
 	srv->direction = 1;
 	srv->speed = 250; //Может тоже отдельную функцию сделать чтобы в структуру не лезть??
 	Rotate(srv);
-}*/
-
-/*void ErrorHandlerServo(Servo *srv)
-{
-
 }*/
 
 /*void SetPwm(TIM_HandleTypeDef *htim, uint16_t tim_channel, uint16_t speed)

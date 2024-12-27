@@ -19,6 +19,8 @@
 #define SERVO1_FB_TIM_CHANNEL TIM_CHANNEL_3
 #define SERVO2_FB_TIM_CHANNEL TIM_CHANNEL_4
 #define ServoGapK 10
+#define ServoStatusOK '0';
+#define ServoStatusError '1';
 
 typedef struct
 {
@@ -36,6 +38,8 @@ typedef struct
 
 	GPIO_TypeDef *GPIOx;
 	uint16_t GPIO_Pin;
+
+	uint8_t status;
 }Servo;
 
 void InitServo(Servo *srv, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, GPIO_TypeDef *GPIOx, uint16_t *GPIO_Pin);
@@ -44,10 +48,14 @@ void SetDirection(Servo *srv);
 void SetSpeed(Servo *srv);
 void ResetSpeed(Servo *srv);
 
+void SetErrorServo(Servo *srv);
+void ResetErrorServo(Servo *srv);
+
 void ErrorHandlerServo(Servo *srv);
 void Rotate(Servo *srv);
 void RotateByAngle(Servo *srv);
-void CalibrateServo(Servo *srv);
+void ReadButton(Servo *srv);
+//void CalibrateServo(Servo *srv);
 
 //void SetPwm(TIM_HandleTypeDef *htim, uint16_t tim_channel, uint16_t speed);
 

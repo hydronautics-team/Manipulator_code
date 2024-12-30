@@ -88,6 +88,11 @@ void Error_Handler(void);
 #define LED_ERROR_Pin GPIO_PIN_8
 #define LED_ERROR_GPIO_Port GPIOB
 
+#define SERVO1_PWM_TIM_CHANNEL TIM_CHANNEL_1
+#define SERVO2_PWM_TIM_CHANNEL TIM_CHANNEL_2
+#define SERVO1_FB_TIM_CHANNEL TIM_CHANNEL_3
+#define SERVO2_FB_TIM_CHANNEL TIM_CHANNEL_4
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

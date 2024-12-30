@@ -1,150 +1,87 @@
-/*
- * Servo.c
- *
- *  Created on: Dec 18, 2024
- *      Author: 1
- */
+//скорость знаковой переменной устанавливать и потом думать про направление
+//set_speed, get_angle, init, прерывания от таймера(считываем только угол) - внешняя, определие ошибок (если тик не пришел, циклически вызываемая), пока скорость не считать
+
+
+
 
 
 #include "Servo.h"
 
-void InitServo(Servo *srv, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, GPIO_TypeDef *GPIOx, uint16_t *GPIO_Pin)
+static void SetError_(HydroServo *hydroservo_self)
 {
-	srv->tim_pwm = htim_pwm;
-	srv->tim_fb = htim_fb;
-
-	srv->tim_channel_pwm = channel_pwm;
-	srv->tim_channel_fb = channel_fb;
-
-	srv->GPIOx = GPIOx;
-	srv->GPIO_Pin = GPIO_Pin;
-
-	srv->direction = 1;
-	srv->speed = 399;
-	srv->angle = 0;
-	ResetSpeed(srv);
-
-
-	/*
-	servo1->tim_pwm = htim_pwm;
-	servo2->tim_pwm = htim_pwm;
-	servo1->tim_fb = htim_fb;
-	servo2->tim_fb = htim_fb;
-
-	servo1->tim_channel_pwm = SERVO1_PWM_TIM_CHANNEL;
-	servo2->tim_channel_pwm = SERVO2_PWM_TIM_CHANNEL;
-
-	servo1->tim_channel_fb = SERVO1_FB_TIM_CHANNEL;
-	servo2->tim_channel_fb = SERVO2_FB_TIM_CHANNEL;
-
-	servo1->GPIOx = SRV1_FB_GPIO_Port;
-	servo2->GPIOx = SRV2_FB_GPIO_Port;
-	servo1->GPIO_Pin = SRV1_DIR_Pin;
-	servo2->GPIO_Pin = SRV2_DIR_Pin;
-	*/
+	hydroservo_self->status = HYDROSERVO_STATUS_ERROR;
 }
 
-void SetDirection(Servo *srv)
+static void SetDirection_(HydroServo *hydroservo_self)
 {
-	if(srv->direction == 1)
+	if(hydroservo_self->direction == 1)
 	{
-		HAL_GPIO_WritePin(srv->GPIOx, srv->GPIO_Pin, SET);
+		HAL_GPIO_WritePin(hydroservo_self->GPIOx, hydroservo_self->GPIO_Pin, SET);
 	}
-	if(srv->direction == -1)
+	else if(hydroservo_self->direction == -1)
 	{
-		HAL_GPIO_WritePin(srv->GPIOx, srv->GPIO_Pin, RESET);
+		HAL_GPIO_WritePin(hydroservo_self->GPIOx, hydroservo_self->GPIO_Pin, RESET);
+	}
+	else
+	{
+		SetError_(hydroservo_self);
 	}
 }
-void SetSpeed(Servo *srv)
+static void SetPWM_(HydroServo *hydroservo_self)
 {
-	__HAL_TIM_SET_COMPARE(srv->tim_pwm, srv->tim_channel_pwm, srv->speed);
-}
-void ResetSpeed(Servo *srv)
-{
-	__HAL_TIM_SET_COMPARE(srv->tim_pwm, srv->tim_channel_pwm, TIM_PWM_COUNTER);
+	__HAL_TIM_SET_COMPARE(hydroservo_self->tim_pwm, hydroservo_self->tim_channel_pwm, hydroservo_self->target_speed);
 }
 
-void Rotate(Servo *srv)
+static void StopPWM_(HydroServo *hydroservo_self)
 {
-	SetDirection(srv);
-	SetSpeed(srv);
+	__HAL_TIM_SET_COMPARE(hydroservo_self->tim_pwm, hydroservo_self->tim_channel_pwm, TIM_PWM_COUNTER);
 }
 
-/*void RotateByAngle(Servo *srv)
+void hydroservo_Init(HydroServo *hydroservo_self, TIM_HandleTypeDef *htim_pwm,
+		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, GPIO_TypeDef *GPIOx, uint16_t *GPIO_Pin)
 {
-	SetDirection(srv);
-	SetSpeed(srv);
-	while(srv->fb_angle < srv->angle) HAL_Delay(10);
-	ResetSpeed(srv);
-}*/
+	hydroservo_self->tim_pwm = htim_pwm;
+	hydroservo_self->tim_fb = htim_fb;
 
-void RotateByAngle(Servo *srv)
+	hydroservo_self->tim_channel_pwm = channel_pwm;
+	hydroservo_self->tim_channel_fb = channel_fb;
+
+	hydroservo_self->GPIOx = GPIOx;
+	hydroservo_self->GPIO_Pin = GPIO_Pin;
+
+	hydroservo_self->target_angle = 0;
+	hydroservo_self->target_speed = 399;
+	hydroservo_self->direction = 1;
+	hydroservo_self->current_angle = 0;
+	hydroservo_self->current_speed = 0;
+	hydroservo_self->status = HYDROSERVO_STATUS_OK;
+
+	StopPWM_(hydroservo_self);
+}
+
+void hydroservo_SetSpeed(HydroServo *hydroservo_self)
 {
-	if(srv->angle - srv->fb_angle > ServoGapK)
+	SetDirection_(hydroservo_self);
+	SetPWM_(hydroservo_self);
+}
+
+int32_t hydroservo_GetAngle(HydroServo *hydroservo_self)
+{
+	return hydroservo_self->current_angle;
+}
+
+void hydroservo_Callback(HydroServo *hydroservo_self)
+{
+	if(hydroservo_self->direction == 1)
 	{
-		srv->direction = 1;//Может сделать отдельную функцию для установки направления??
-		Rotate(srv);
+		hydroservo_self->current_angle++;
 	}
-	if(srv->angle - srv->fb_angle < -ServoGapK)
+	else if(hydroservo_self->direction == -1)
 	{
-		srv->direction = -1;
-		Rotate(srv);
+		hydroservo_self->current_angle--;
 	}
-	if(srv->angle - srv->fb_angle < ServoGapK && srv->angle - srv->fb_angle > -ServoGapK)
+	else
 	{
-		ResetSpeed(srv);
-	}
-}
-
-
-void SetErrorServo(Servo *srv)
-{
-	ResetSpeed(srv);
-	srv->status = ServoStatusError;
-	HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, SET);
-}
-
-void ResetErrorServo(Servo *srv)
-{
-	srv->status = ServoStatusOK;
-	HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, RESET);
-}
-
-void ReadButton(Servo *srv)
-{
-	if(HAL_GPIO_ReadPin(LED_OK_GPIO_Port, LED_OK_Pin) == GPIO_PIN_RESET)
-	{
-		SetErrorServo(srv);
+		SetError_(hydroservo_self);
 	}
 }
-
-void ErrorHandlerServo(Servo *srv)
-{
-
-}
-
-
-
-//дописать!!!
-/*void CalibrateServo(Servo *srv)
-{
-	srv->direction = 1;
-	srv->speed = 250; //Может тоже отдельную функцию сделать чтобы в структуру не лезть??
-	Rotate(srv);
-}*/
-
-/*void SetPwm(TIM_HandleTypeDef *htim, uint16_t tim_channel, uint16_t speed)
-{
-	TIM_OC_InitTypeDef sConfigOC;
-
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = speed;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-
-	HAL_TIM_PWM_ConfigChannel(htim, &sConfigOC, tim_channel);
-	HAL_TIM_PWM_Start(htim, tim_channel);
-
-	__HAL_TIM_SET_COMPARE(htim, tim_channel, speed);
-}
-*/

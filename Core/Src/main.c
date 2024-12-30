@@ -55,8 +55,8 @@ uint16_t captured_value;
 int8_t step = 0;
 uint8_t transmitBuffer[BUFFER_SIZE];
 uint8_t receiveBuffer[BUFFER_SIZE];
-Servo servo1;
-Servo servo2;
+HydroServo servo1;
+HydroServo servo2;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,23 +106,14 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_TIM2_Init();
-  InitServo(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
-  InitServo(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
   /* USER CODE BEGIN 2 */
+  hydroservo_Init(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
+  hydroservo_Init(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
 
-  //servo1.angle = 100;
-  servo1.speed = 130;
-  //RotateByAngle(&servo2);
-
-//  for (uint8_t i = 0; i < BUFFER_SIZE; i++)
-//    {
-//            transmitBuffer[i] = 1;
-//            receiveBuffer[i] = 0;
-//    }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -150,28 +141,13 @@ int main(void)
 	  	  	  HAL_Delay(20);
 		*/
 
-	  	  	 /* if(pwm_value == 0) step = 1;
-	  	  	  if(pwm_value == 399) step = -1;
-	  	  	  pwm_value += step;
-	  	  	  setPWM(pwm_value);
-	  	  	  HAL_Delay(5);*/
-
 	  	  	  /*set_speed(380, &htim3, TIM_CHANNEL_1);
 	  	  	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, SET);
 	  	  	  transmitBuffer[0] = period1;
 	  	  	  HAL_UART_Transmit_IT(&huart1, transmitBuffer, BUFFER_SIZE);
 	  	  	  HAL_Delay(100);
 
-	  	  	  setPWM(399);*/
-
-	  /*HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, SET);
-	  transmitBuffer[0] = 1;
-	  HAL_UART_Transmit_IT(&huart1, transmitBuffer, BUFFER_SIZE);
-	  HAL_Delay(100);*/
-
-	  //RotateByAngle(&servo1);
-	  //Rotate(&servo1);
-
+			*/
   }
     /* USER CODE END WHILE */
 
@@ -408,35 +384,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     {
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
         {
-        	servo1.fb_angle += servo1.direction;
-
-        	captured_value =  HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
-
-        	if(captured_value > tim_buf1)
-        	{
-        		servo1.fb_speed = captured_value - tim_buf1;
-        	}
-        	else
-        	{
-        		servo1.fb_speed = TIM_FB_PERIOD - tim_buf1 + captured_value;
-        	}
-        	tim_buf1 = captured_value;
+        	hydroservo_Callback(&servo1);
         }
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
         {
-        	servo2.fb_angle += servo2.direction;
-
-        	captured_value =  HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4);
-
-        	if(captured_value > tim_buf2)
-        	{
-        		servo2.fb_speed = captured_value - tim_buf2;
-        	}
-        	else
-        	{
-        		servo2.fb_speed = TIM_FB_PERIOD - tim_buf2 + captured_value;
-        	}
-        	tim_buf2 = captured_value;
+        	hydroservo_Callback(&servo2);
         }
     }
 }

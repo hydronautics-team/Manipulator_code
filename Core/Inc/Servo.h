@@ -14,22 +14,17 @@
 
 #define TIM_FB_PERIOD 65535
 #define TIM_PWM_COUNTER 399
-#define SERVO1_PWM_TIM_CHANNEL TIM_CHANNEL_1
-#define SERVO2_PWM_TIM_CHANNEL TIM_CHANNEL_2
-#define SERVO1_FB_TIM_CHANNEL TIM_CHANNEL_3
-#define SERVO2_FB_TIM_CHANNEL TIM_CHANNEL_4
-#define ServoGapK 10
-#define ServoStatusOK '0';
-#define ServoStatusError '1';
+#define HYDROSERVO_STATUS_OK '0'
+#define HYDROSERVO_STATUS_ERROR '1'
 
 typedef struct
 {
-	int32_t angle;
-	uint16_t speed;
+	int32_t target_angle;
+	uint16_t target_speed;
 	int16_t direction;
 
-	int32_t fb_angle;
-	uint16_t fb_speed;
+	int32_t current_angle;
+	uint16_t current_speed;
 
 	TIM_HandleTypeDef *tim_pwm;
 	TIM_HandleTypeDef *tim_fb;
@@ -40,23 +35,11 @@ typedef struct
 	uint16_t GPIO_Pin;
 
 	uint8_t status;
-}Servo;
+}HydroServo;
 
-void InitServo(Servo *srv, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, GPIO_TypeDef *GPIOx, uint16_t *GPIO_Pin);
-
-void SetDirection(Servo *srv);
-void SetSpeed(Servo *srv);
-void ResetSpeed(Servo *srv);
-
-void SetErrorServo(Servo *srv);
-void ResetErrorServo(Servo *srv);
-
-void ErrorHandlerServo(Servo *srv);
-void Rotate(Servo *srv);
-void RotateByAngle(Servo *srv);
-void ReadButton(Servo *srv);
-//void CalibrateServo(Servo *srv);
-
-//void SetPwm(TIM_HandleTypeDef *htim, uint16_t tim_channel, uint16_t speed);
+void hydroservo_Init(HydroServo *hydroservo_self, TIM_HandleTypeDef *htim_pwm,
+		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, GPIO_TypeDef *GPIOx, uint16_t *GPIO_Pin);
+int32_t hydroservo_GetAngle(HydroServo *hydroservo_self);
+void hydroservo_Callback(HydroServo *hydroservo_self);
 
 #endif /* INC_SERVO_H_ */

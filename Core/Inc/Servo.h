@@ -12,7 +12,6 @@
 #include "stdint.h"
 #include "main.h"
 
-#define TIM_FB_PERIOD 65535
 #define TIM_PWM_COUNTER 399
 #define HYDROSERVO_STATUS_OK '0'
 #define HYDROSERVO_STATUS_ERROR '1'

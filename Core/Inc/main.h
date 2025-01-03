@@ -93,6 +93,9 @@ void Error_Handler(void);
 #define SERVO1_FB_TIM_CHANNEL TIM_CHANNEL_3
 #define SERVO2_FB_TIM_CHANNEL TIM_CHANNEL_4
 
+#define TIM_FB_PERIOD 65535
+#define TIM_PWM_COUNTER 399
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

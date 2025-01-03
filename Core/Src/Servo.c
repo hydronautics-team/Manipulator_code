@@ -1,6 +1,6 @@
 //скорость знаковой переменной устанавливать и потом думать про направление
 //set_speed, get_angle, init, прерывания от таймера(считываем только угол) - внешняя, определие ошибок (если тик не пришел, циклически вызываемая), пока скорость не считать
-
+//как лучше: хранить статус ошибки в структуре сервы или возвращать в функциях?
 
 
 
@@ -32,9 +32,12 @@ static void SetPWM_(HydroServo *hydroservo_self)
 	__HAL_TIM_SET_COMPARE(hydroservo_self->tim_pwm, hydroservo_self->tim_channel_pwm, hydroservo_self->target_speed);
 }
 
-static void StopPWM_(HydroServo *hydroservo_self)
+
+
+void hydroservo_SetSpeed(HydroServo *hydroservo_self)
 {
-	__HAL_TIM_SET_COMPARE(hydroservo_self->tim_pwm, hydroservo_self->tim_channel_pwm, TIM_PWM_COUNTER);
+	SetDirection_(hydroservo_self);
+	SetPWM_(hydroservo_self);
 }
 
 void hydroservo_Init(HydroServo *hydroservo_self, TIM_HandleTypeDef *htim_pwm,
@@ -50,19 +53,13 @@ void hydroservo_Init(HydroServo *hydroservo_self, TIM_HandleTypeDef *htim_pwm,
 	hydroservo_self->GPIO_Pin = GPIO_Pin;
 
 	hydroservo_self->target_angle = 0;
-	hydroservo_self->target_speed = 399;
+	hydroservo_self->target_speed = TIM_PWM_COUNTER;
 	hydroservo_self->direction = 1;
 	hydroservo_self->current_angle = 0;
 	hydroservo_self->current_speed = 0;
 	hydroservo_self->status = HYDROSERVO_STATUS_OK;
 
-	StopPWM_(hydroservo_self);
-}
-
-void hydroservo_SetSpeed(HydroServo *hydroservo_self)
-{
-	SetDirection_(hydroservo_self);
-	SetPWM_(hydroservo_self);
+	hydroservo_SetSpeed(hydroservo_self);
 }
 
 int32_t hydroservo_GetAngle(HydroServo *hydroservo_self)
@@ -83,5 +80,13 @@ void hydroservo_Callback(HydroServo *hydroservo_self)
 	else
 	{
 		SetError_(hydroservo_self);
+	}
+}
+
+void hydroservo_CheckError(HydroServo *hydroservo_self, int32_t previous_angle)
+{
+	if(hydroservo_self->current_angle == previous_angle)
+	{
+		hydroservo_self->status = HYDROSERVO_STATUS_ERROR;
 	}
 }

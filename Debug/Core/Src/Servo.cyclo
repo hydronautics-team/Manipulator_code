@@ -6,3 +6,4 @@
 ../Core/Src/Servo.c:62:6:hydroservo_SetSpeed	1
 ../Core/Src/Servo.c:68:9:hydroservo_GetAngle	1
 ../Core/Src/Servo.c:73:6:hydroservo_Callback	3
+../Core/Src/Servo.c:89:6:hydroservo_CheckError	1

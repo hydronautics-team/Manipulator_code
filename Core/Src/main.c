@@ -18,7 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "Servo.h"
+#include "hydroservo.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -47,11 +47,6 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-uint16_t period1;
-uint16_t period2;
-int16_t tim_buf1;
-int16_t tim_buf2;
-uint16_t captured_value;
 int8_t step = 0;
 uint8_t transmitBuffer[BUFFER_SIZE];
 uint8_t receiveBuffer[BUFFER_SIZE];
@@ -384,11 +379,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     {
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
         {
-        	hydroservo_Callback(&servo1);
+        	hydroservo_CallbackByFeedback(&servo1);
         }
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
         {
-        	hydroservo_Callback(&servo2);
+        	hydroservo_CallbackByFeedback(&servo2);
         }
     }
 }

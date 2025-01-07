@@ -12,15 +12,16 @@
 #include "stdint.h"
 #include "main.h"
 
-#define HYDROSERVO_TIM_PWM_COUNTER 399
+#define HYDROSERVO_MAX_SPEED 399
+
 #define HYDROSERVO_STATUS_OK '0'
 #define HYDROSERVO_STATUS_ERROR '1'
+
 
 typedef struct
 {
 	int32_t target_angle;
 	uint16_t target_speed;
-	int8_t direction;
 
 	int32_t current_angle;
 	uint16_t current_speed;
@@ -37,7 +38,8 @@ typedef struct
 }HydroServo;
 
 void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
-		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, GPIO_TypeDef *GPIOx, uint16_t *GPIO_Pin);
+		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
+void hydroservo_SetSpeed(HydroServo *servo_self);
 int32_t hydroservo_GetAngle(HydroServo *servo_self);
 void hydroservo_CallbackByFeedback(HydroServo *servo_self);
 

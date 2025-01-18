@@ -99,13 +99,14 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  hydroservo_Init(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
-  hydroservo_Init(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
+  hydroservo_Init(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO1_FB_PERIOD, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
+  hydroservo_Init(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO2_FB_PERIOD, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
   hydroservo_SetSpeed(&servo1, 3599);
+  hydroservo_SetSpeed(&servo2, -600);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -132,9 +133,14 @@ int main(void)
 	  	  	  }
 	  	  	  HAL_Delay(20);
 		*/
-	  if(servo1.current_angle >= 2953*10)
+	  if(hydroservo_GetAngleRaw(&servo2) <= -800)
 	  {
-		  hydroservo_SetSpeed(&servo1, 0);
+		  hydroservo_SetSpeed(&servo2, 0);
+	  }
+
+	  if(hydroservo_GetAngleDeciDegrees(&servo1) >= 3600)
+	  {
+	  		  hydroservo_SetSpeed(&servo1, 0);
 	  }
 
 

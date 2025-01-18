@@ -3,13 +3,13 @@
 #include "hydroservo.h"
 
 #define SPEED_TO_PWM_(speed, pwm_period) (pwm_period - (speed >= 0 ? speed : -speed))
-#define ANGLE_TO_DECIDEGREES_(angle, fb_period) (angle * 3600 / fb_period)
+#define ANGLE_TO_DECIDEGREES_(angle, fb_period) ((angle * 3600) / fb_period)
 
 static void SetDirection_(HydroServo *servo_self);
 static void SetPWM_(HydroServo *servo_self);
 
 void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
-		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period,
+		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period, uint16_t fb_period,
 		GPIO_TypeDef *direction_port, uint16_t direction_pin)
 {
 	servo_self->tim_pwm = htim_pwm;
@@ -21,11 +21,11 @@ void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
 	servo_self->direction_port = direction_port;
 	servo_self->direction_pin = direction_pin;
 
-	hydroservo_SetSpeed(servo_self, 0);
-
 	servo_self->target_angle = 0;
 	servo_self->current_angle = 0;
 	servo_self->current_speed = 0;
+	servo_self->fb_period = fb_period;
+	hydroservo_SetSpeed(servo_self, 0);
 }
 
 void hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed)

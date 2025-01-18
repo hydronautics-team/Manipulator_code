@@ -94,6 +94,8 @@ void Error_Handler(void);
 #define SERVO1_FB_TIM_CHANNEL TIM_CHANNEL_3
 #define SERVO2_FB_TIM_CHANNEL TIM_CHANNEL_4
 #define SERVO_PWM_PERIOD 3599
+#define SERVO1_FB_PERIOD 2953
+#define SERVO2_FB_PERIOD 700 //надо померить
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

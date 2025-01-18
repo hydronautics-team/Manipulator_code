@@ -12,35 +12,43 @@
 #include "stdint.h"
 #include "main.h"
 
-#define HYDROSERVO_MAX_SPEED 399
+#define HYDROSERVO_STATUS_OK 0
+#define HYDROSERVO_STATUS_ERROR 1
+//объявить через enum
 
-#define HYDROSERVO_STATUS_OK '0'
-#define HYDROSERVO_STATUS_ERROR '1'
-
+typedef enum
+{
+	HYDROSERVO_OK = 0,
+	HYDROSERVO_ERROR = -1
+}HYDROSERVO_STATUS;
 
 typedef struct
 {
 	int32_t target_angle;
-	uint16_t target_speed;
+	int16_t target_speed;
 
 	int32_t current_angle;
-	uint16_t current_speed;
+	int16_t current_speed;
 
 	TIM_HandleTypeDef *tim_pwm;
 	TIM_HandleTypeDef *tim_fb;
 	uint16_t tim_channel_pwm;
 	uint16_t tim_channel_fb;
 
+	uint16_t tim_pwm_period;
+	uint16_t fb_period;
+
 	GPIO_TypeDef *direction_port;
 	uint16_t direction_pin;
 
-	uint8_t status;
 }HydroServo;
 
 void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
-		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
+		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period,
+		GPIO_TypeDef *direction_port, uint16_t direction_pin);
 void hydroservo_SetSpeed(HydroServo *servo_self);
-int32_t hydroservo_GetAngle(HydroServo *servo_self);
+int32_t hydroservo_GetAngleRaw(HydroServo *servo_self);
 void hydroservo_CallbackByFeedback(HydroServo *servo_self);
+HYDROSERVO_STATUS hydroservo_CheckError(HydroServo *servo_self, int32_t previous_angle);
 
 #endif /* INC_SERVO_H_ */

@@ -38,7 +38,6 @@
 /* USER CODE BEGIN PM */
 
 /* USER CODE END PM */
-
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -106,7 +105,7 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
-  servo1.target_speed = 3599;
+  hydroservo_SetSpeed(&servo1, 3599);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -133,11 +132,9 @@ int main(void)
 	  	  	  }
 	  	  	  HAL_Delay(20);
 		*/
-
-	  hydroservo_SetSpeed(&servo1);
 	  if(servo1.current_angle >= 2953*10)
 	  {
-		  servo1.target_speed = 0;
+		  hydroservo_SetSpeed(&servo1, 0);
 	  }
 
 

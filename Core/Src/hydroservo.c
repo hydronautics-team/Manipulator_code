@@ -1,4 +1,4 @@
-//как лучше: хранить статус ошибки в структуре сервы или возвращать в функциях? возврат кода
+//в set speed принмать скорость, посмотреть что возвращают hal функции и ставить ошибку когда у них ошибка
 
 #include "hydroservo.h"
 
@@ -21,16 +21,16 @@ void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
 	servo_self->direction_port = direction_port;
 	servo_self->direction_pin = direction_pin;
 
+	hydroservo_SetSpeed(servo_self, 0);
+
 	servo_self->target_angle = 0;
-	servo_self->target_speed = 0;
 	servo_self->current_angle = 0;
 	servo_self->current_speed = 0;
-
-	hydroservo_SetSpeed(servo_self);
 }
 
-void hydroservo_SetSpeed(HydroServo *servo_self)
+void hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed)
 {
+	servo_self->target_speed = speed;
 	SetDirection_(servo_self);
 	SetPWM_(servo_self);
 }
@@ -55,13 +55,6 @@ void hydroservo_CallbackByFeedback(HydroServo *servo_self)
 	{
 		servo_self->current_angle--;
 	}
-}
-
-
- HYDROSERVO_STATUS hydroservo_CheckError(HydroServo *servo_self, int32_t previous_angle)
-{
-	if(servo_self->current_angle == previous_angle) return HYDROSERVO_ERROR;
-	else return HYDROSERVO_OK;
 }
 
 static void SetDirection_(HydroServo *servo_self)

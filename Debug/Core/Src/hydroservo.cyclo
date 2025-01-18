@@ -1,8 +1,7 @@
 ../Core/Src/hydroservo.c:11:6:hydroservo_Init	1
-../Core/Src/hydroservo.c:32:6:hydroservo_SetSpeed	1
+../Core/Src/hydroservo.c:31:6:hydroservo_SetSpeed	1
 ../Core/Src/hydroservo.c:38:9:hydroservo_GetAngleRaw	1
 ../Core/Src/hydroservo.c:43:9:hydroservo_GetAngleDeciDegrees	1
 ../Core/Src/hydroservo.c:48:6:hydroservo_CallbackByFeedback	2
-../Core/Src/hydroservo.c:61:20:hydroservo_CheckError	2
-../Core/Src/hydroservo.c:67:13:SetDirection_	2
-../Core/Src/hydroservo.c:78:13:SetPWM_	4
+../Core/Src/hydroservo.c:60:13:SetDirection_	2
+../Core/Src/hydroservo.c:71:13:SetPWM_	4

@@ -46,9 +46,9 @@ typedef struct
 void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
 		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period,
 		GPIO_TypeDef *direction_port, uint16_t direction_pin);
-void hydroservo_SetSpeed(HydroServo *servo_self);
+void hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed);
 int32_t hydroservo_GetAngleRaw(HydroServo *servo_self);
+int32_t hydroservo_GetAngleDeciDegrees(HydroServo *servo_self);
 void hydroservo_CallbackByFeedback(HydroServo *servo_self);
-HYDROSERVO_STATUS hydroservo_CheckError(HydroServo *servo_self, int32_t previous_angle);
 
 #endif /* INC_SERVO_H_ */

@@ -12,10 +12,6 @@
 #include "stdint.h"
 #include "main.h"
 
-#define HYDROSERVO_STATUS_OK 0
-#define HYDROSERVO_STATUS_ERROR 1
-//объявить через enum
-
 typedef enum
 {
 	HYDROSERVO_OK = 0,
@@ -29,6 +25,8 @@ typedef struct
 
 	int32_t current_angle;
 	int16_t current_speed;
+
+	int32_t max_angle;
 
 	TIM_HandleTypeDef *tim_pwm;
 	TIM_HandleTypeDef *tim_fb;
@@ -51,5 +49,7 @@ void hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed);
 int32_t hydroservo_GetAngleRaw(HydroServo *servo_self);
 int32_t hydroservo_GetAngleDeciDegrees(HydroServo *servo_self);
 void hydroservo_CallbackByFeedback(HydroServo *servo_self);
+void hydroservo_SetOrigin(HydroServo *servo_self, int32_t origin_angle);
+void hydroservo_SetAngleMax(HydroServo *servo_self, int32_t max_angle);
 
 #endif /* INC_SERVO_H_ */

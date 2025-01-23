@@ -24,6 +24,7 @@ void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
 	servo_self->target_angle = 0;
 	servo_self->current_angle = 0;
 	servo_self->current_speed = 0;
+	servo_self->max_angle = 0;
 	servo_self->fb_period = fb_period;
 	hydroservo_SetSpeed(servo_self, 0);
 }
@@ -57,6 +58,16 @@ void hydroservo_CallbackByFeedback(HydroServo *servo_self)
 	}
 }
 
+void hydroservo_SetOrigin(HydroServo *servo_self, int32_t origin_angle)
+{
+	servo_self->current_angle = origin_angle;
+}
+
+void hydroservo_SetAngleMax(HydroServo *servo_self, int32_t max_angle)
+{
+	servo_self->max_angle = max_angle;
+}
+
 static void SetDirection_(HydroServo *servo_self)
 {
 	if(servo_self->target_speed >= 0)
@@ -70,5 +81,6 @@ static void SetDirection_(HydroServo *servo_self)
 }
 static void SetPWM_(HydroServo *servo_self)
 {
-	__HAL_TIM_SET_COMPARE(servo_self->tim_pwm, servo_self->tim_channel_pwm, SPEED_TO_PWM_(servo_self->target_speed, servo_self->tim_pwm_period));
+	__HAL_TIM_SET_COMPARE(servo_self->tim_pwm, servo_self->tim_channel_pwm,
+			SPEED_TO_PWM_(servo_self->target_speed, servo_self->tim_pwm_period));
 }

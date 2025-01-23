@@ -41,16 +41,16 @@ typedef struct
 
 }HydroServo;
 
-void hydroservo_Init(HydroServo *servo_self,
+void hydroservo_Init(HydroServo *self,
 		TIM_HandleTypeDef *htim_pwm,TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb,
 		uint16_t tim_pwm_period, uint16_t fb_period,
 		GPIO_TypeDef *direction_port, uint16_t direction_pin);
-HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed);
-int32_t hydroservo_GetAngleRaw(HydroServo *servo_self);
-int32_t hydroservo_GetAngleDeciDegrees(HydroServo *servo_self);
-void hydroservo_CallbackByFeedback(HydroServo *servo_self);
-void hydroservo_SetOrigin(HydroServo *servo_self, int32_t origin_angle);
-void hydroservo_SetAngleMax(HydroServo *servo_self, int32_t max_angle);
-void hydroservo_CheckAngleRestrictions(HydroServo *servo_self);
+HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed);
+int32_t hydroservo_GetAngleRaw(HydroServo *self);
+int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self);
+void hydroservo_CallbackByFeedback(HydroServo *self);
+void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle);
+void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle);
+void hydroservo_CheckAngleRestrictions(HydroServo *self);
 
 #endif /* INC_SERVO_H_ */

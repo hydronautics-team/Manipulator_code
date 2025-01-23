@@ -39,13 +39,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   0000db74  00000000  00000000  0002bb2e  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    00086ea2  00000000  00000000  000396a2  2**0
+ 18 .debug_str    00086e9c  00000000  00000000  000396a2  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  000c0544  2**0
+ 19 .comment      00000043  00000000  00000000  000c053e  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000033c0  00000000  00000000  000c0588  2**2
+ 20 .debug_frame  000033c0  00000000  00000000  000c0584  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 00000069  00000000  00000000  000c3948  2**0
+ 21 .debug_line_str 00000069  00000000  00000000  000c3944  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -79,9 +79,9 @@ Disassembly of section .text:
  8000148:	080035ec 	.word	0x080035ec
 
 0800014c <hydroservo_Init>:
-static void SetPWM_(HydroServo *servo_self);
+static void SetPWM_(HydroServo *self);
 
-void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
+void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm,
 		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period, uint16_t fb_period,
 		GPIO_TypeDef *direction_port, uint16_t direction_pin)
 {
@@ -92,57 +92,57 @@ void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
  8000154:	60b9      	str	r1, [r7, #8]
  8000156:	607a      	str	r2, [r7, #4]
  8000158:	807b      	strh	r3, [r7, #2]
-	servo_self->tim_pwm = htim_pwm;
+	self->tim_pwm = htim_pwm;
  800015a:	68fb      	ldr	r3, [r7, #12]
  800015c:	68ba      	ldr	r2, [r7, #8]
  800015e:	615a      	str	r2, [r3, #20]
-	servo_self->tim_fb = htim_fb;
+	self->tim_fb = htim_fb;
  8000160:	68fb      	ldr	r3, [r7, #12]
  8000162:	687a      	ldr	r2, [r7, #4]
  8000164:	619a      	str	r2, [r3, #24]
-	servo_self->tim_channel_pwm = channel_pwm;
+	self->tim_channel_pwm = channel_pwm;
  8000166:	68fb      	ldr	r3, [r7, #12]
  8000168:	887a      	ldrh	r2, [r7, #2]
  800016a:	839a      	strh	r2, [r3, #28]
-	servo_self->tim_channel_fb = channel_fb;
+	self->tim_channel_fb = channel_fb;
  800016c:	68fb      	ldr	r3, [r7, #12]
  800016e:	8b3a      	ldrh	r2, [r7, #24]
  8000170:	83da      	strh	r2, [r3, #30]
-	servo_self->tim_pwm_period = tim_pwm_period;
+	self->tim_pwm_period = tim_pwm_period;
  8000172:	68fb      	ldr	r3, [r7, #12]
  8000174:	8bba      	ldrh	r2, [r7, #28]
  8000176:	841a      	strh	r2, [r3, #32]
 
-	servo_self->direction_port = direction_port;
+	self->direction_port = direction_port;
  8000178:	68fb      	ldr	r3, [r7, #12]
  800017a:	6a7a      	ldr	r2, [r7, #36]	@ 0x24
  800017c:	625a      	str	r2, [r3, #36]	@ 0x24
-	servo_self->direction_pin = direction_pin;
+	self->direction_pin = direction_pin;
  800017e:	68fb      	ldr	r3, [r7, #12]
  8000180:	8d3a      	ldrh	r2, [r7, #40]	@ 0x28
  8000182:	851a      	strh	r2, [r3, #40]	@ 0x28
 
-	servo_self->target_angle = 0;
+	self->target_angle = 0;
  8000184:	68fb      	ldr	r3, [r7, #12]
  8000186:	2200      	movs	r2, #0
  8000188:	601a      	str	r2, [r3, #0]
-	servo_self->current_angle = 0;
+	self->current_angle = 0;
  800018a:	68fb      	ldr	r3, [r7, #12]
  800018c:	2200      	movs	r2, #0
  800018e:	609a      	str	r2, [r3, #8]
-	servo_self->current_speed = 0;
+	self->current_speed = 0;
  8000190:	68fb      	ldr	r3, [r7, #12]
  8000192:	2200      	movs	r2, #0
  8000194:	819a      	strh	r2, [r3, #12]
-	servo_self->max_angle = 0;
+	self->max_angle = 0;
  8000196:	68fb      	ldr	r3, [r7, #12]
  8000198:	2200      	movs	r2, #0
  800019a:	611a      	str	r2, [r3, #16]
-	servo_self->fb_period = fb_period;
+	self->fb_period = fb_period;
  800019c:	68fb      	ldr	r3, [r7, #12]
  800019e:	8c3a      	ldrh	r2, [r7, #32]
  80001a0:	845a      	strh	r2, [r3, #34]	@ 0x22
-	hydroservo_SetSpeed(servo_self, 0);
+	hydroservo_SetSpeed(self, 0);
  80001a2:	2100      	movs	r1, #0
  80001a4:	68f8      	ldr	r0, [r7, #12]
  80001a6:	f000 f804 	bl	80001b2 <hydroservo_SetSpeed>
@@ -156,7 +156,7 @@ void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
 
 //нормально ли писать такие длинные условия?
 
-HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed)
+HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed)
 {
  80001b2:	b580      	push	{r7, lr}
  80001b4:	b082      	sub	sp, #8
@@ -164,7 +164,7 @@ HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed)
  80001b8:	6078      	str	r0, [r7, #4]
  80001ba:	460b      	mov	r3, r1
  80001bc:	807b      	strh	r3, [r7, #2]
-	if((speed == 0 || servo_self->max_angle == 0) ||
+	if((speed == 0 || self->max_angle == 0) ||
  80001be:	f9b7 3002 	ldrsh.w	r3, [r7, #2]
  80001c2:	2b00      	cmp	r3, #0
  80001c4:	d015      	beq.n	80001f2 <hydroservo_SetSpeed+0x40>
@@ -175,7 +175,7 @@ HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed)
  80001ce:	f9b7 3002 	ldrsh.w	r3, [r7, #2]
  80001d2:	2b00      	cmp	r3, #0
  80001d4:	dd05      	ble.n	80001e2 <hydroservo_SetSpeed+0x30>
-			(speed > 0 && servo_self->current_angle < servo_self->max_angle) ||
+			(speed > 0 && self->current_angle < self->max_angle) ||
  80001d6:	687b      	ldr	r3, [r7, #4]
  80001d8:	689a      	ldr	r2, [r3, #8]
  80001da:	687b      	ldr	r3, [r7, #4]
@@ -185,20 +185,20 @@ HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed)
  80001e2:	f9b7 3002 	ldrsh.w	r3, [r7, #2]
  80001e6:	2b00      	cmp	r3, #0
  80001e8:	da0e      	bge.n	8000208 <hydroservo_SetSpeed+0x56>
-			(speed < 0 && servo_self->current_angle > 0))
+			(speed < 0 && self->current_angle > 0))
  80001ea:	687b      	ldr	r3, [r7, #4]
  80001ec:	689b      	ldr	r3, [r3, #8]
  80001ee:	2b00      	cmp	r3, #0
  80001f0:	dd0a      	ble.n	8000208 <hydroservo_SetSpeed+0x56>
 	{
-		servo_self->target_speed = speed;
+		self->target_speed = speed;
  80001f2:	687b      	ldr	r3, [r7, #4]
  80001f4:	887a      	ldrh	r2, [r7, #2]
  80001f6:	809a      	strh	r2, [r3, #4]
-		SetDirection_(servo_self);
+		SetDirection_(self);
  80001f8:	6878      	ldr	r0, [r7, #4]
  80001fa:	f000 f842 	bl	8000282 <SetDirection_>
-		SetPWM_(servo_self);
+		SetPWM_(self);
  80001fe:	6878      	ldr	r0, [r7, #4]
  8000200:	f000 f85d 	bl	80002be <SetPWM_>
 		return HYDROSERVO_OK;
@@ -215,13 +215,13 @@ HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed)
 
 08000214 <hydroservo_GetAngleRaw>:
 
-int32_t hydroservo_GetAngleRaw(HydroServo *servo_self)
+int32_t hydroservo_GetAngleRaw(HydroServo *self)
 {
  8000214:	b480      	push	{r7}
  8000216:	b083      	sub	sp, #12
  8000218:	af00      	add	r7, sp, #0
  800021a:	6078      	str	r0, [r7, #4]
-	return servo_self->current_angle;
+	return self->current_angle;
  800021c:	687b      	ldr	r3, [r7, #4]
  800021e:	689b      	ldr	r3, [r3, #8]
 }
@@ -233,13 +233,13 @@ int32_t hydroservo_GetAngleRaw(HydroServo *servo_self)
 
 0800022a <hydroservo_GetAngleDeciDegrees>:
 
-int32_t hydroservo_GetAngleDeciDegrees(HydroServo *servo_self)
+int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self)
 {
  800022a:	b480      	push	{r7}
  800022c:	b083      	sub	sp, #12
  800022e:	af00      	add	r7, sp, #0
  8000230:	6078      	str	r0, [r7, #4]
-	return ANGLE_TO_DECIDEGREES_(servo_self->current_angle, servo_self->fb_period);
+	return ANGLE_TO_DECIDEGREES_(self->current_angle, self->fb_period);
  8000232:	687b      	ldr	r3, [r7, #4]
  8000234:	689b      	ldr	r3, [r3, #8]
  8000236:	f44f 6261 	mov.w	r2, #3600	@ 0xe10
@@ -256,19 +256,19 @@ int32_t hydroservo_GetAngleDeciDegrees(HydroServo *servo_self)
 
 08000250 <hydroservo_CallbackByFeedback>:
 
-void hydroservo_CallbackByFeedback(HydroServo *servo_self)
+void hydroservo_CallbackByFeedback(HydroServo *self)
 {
  8000250:	b480      	push	{r7}
  8000252:	b083      	sub	sp, #12
  8000254:	af00      	add	r7, sp, #0
  8000256:	6078      	str	r0, [r7, #4]
-	if(servo_self->target_speed >= 0)
+	if(self->target_speed >= 0)
  8000258:	687b      	ldr	r3, [r7, #4]
  800025a:	f9b3 3004 	ldrsh.w	r3, [r3, #4]
  800025e:	2b00      	cmp	r3, #0
  8000260:	db05      	blt.n	800026e <hydroservo_CallbackByFeedback+0x1e>
 	{
-		servo_self->current_angle++;
+		self->current_angle++;
  8000262:	687b      	ldr	r3, [r7, #4]
  8000264:	689b      	ldr	r3, [r3, #8]
  8000266:	1c5a      	adds	r2, r3, #1
@@ -277,11 +277,11 @@ void hydroservo_CallbackByFeedback(HydroServo *servo_self)
 	}
 	else
 	{
-		servo_self->current_angle--;
+		self->current_angle--;
 	}
 }
  800026c:	e004      	b.n	8000278 <hydroservo_CallbackByFeedback+0x28>
-		servo_self->current_angle--;
+		self->current_angle--;
  800026e:	687b      	ldr	r3, [r7, #4]
  8000270:	689b      	ldr	r3, [r3, #8]
  8000272:	1e5a      	subs	r2, r3, #1
@@ -295,23 +295,23 @@ void hydroservo_CallbackByFeedback(HydroServo *servo_self)
  8000280:	4770      	bx	lr
 
 08000282 <SetDirection_>:
-		hydroservo_SetSpeed(servo_self, 0);
+		hydroservo_SetSpeed(self, 0);
 	}
 }
 
-static void SetDirection_(HydroServo *servo_self)
+static void SetDirection_(HydroServo *self)
 {
  8000282:	b580      	push	{r7, lr}
  8000284:	b082      	sub	sp, #8
  8000286:	af00      	add	r7, sp, #0
  8000288:	6078      	str	r0, [r7, #4]
-	if(servo_self->target_speed >= 0)
+	if(self->target_speed >= 0)
  800028a:	687b      	ldr	r3, [r7, #4]
  800028c:	f9b3 3004 	ldrsh.w	r3, [r3, #4]
  8000290:	2b00      	cmp	r3, #0
  8000292:	db08      	blt.n	80002a6 <SetDirection_+0x24>
 	{
-		HAL_GPIO_WritePin(servo_self->direction_port, servo_self->direction_pin, SET);
+		HAL_GPIO_WritePin(self->direction_port, self->direction_pin, SET);
  8000294:	687b      	ldr	r3, [r7, #4]
  8000296:	6a58      	ldr	r0, [r3, #36]	@ 0x24
  8000298:	687b      	ldr	r3, [r7, #4]
@@ -322,11 +322,11 @@ static void SetDirection_(HydroServo *servo_self)
 	}
 	else
 	{
-		HAL_GPIO_WritePin(servo_self->direction_port, servo_self->direction_pin, RESET);
+		HAL_GPIO_WritePin(self->direction_port, self->direction_pin, RESET);
 	}
 }
  80002a4:	e007      	b.n	80002b6 <SetDirection_+0x34>
-		HAL_GPIO_WritePin(servo_self->direction_port, servo_self->direction_pin, RESET);
+		HAL_GPIO_WritePin(self->direction_port, self->direction_pin, RESET);
  80002a6:	687b      	ldr	r3, [r7, #4]
  80002a8:	6a58      	ldr	r0, [r3, #36]	@ 0x24
  80002aa:	687b      	ldr	r3, [r7, #4]
@@ -341,13 +341,13 @@ static void SetDirection_(HydroServo *servo_self)
  80002bc:	bd80      	pop	{r7, pc}
 
 080002be <SetPWM_>:
-static void SetPWM_(HydroServo *servo_self)
+static void SetPWM_(HydroServo *self)
 {
  80002be:	b480      	push	{r7}
  80002c0:	b083      	sub	sp, #12
  80002c2:	af00      	add	r7, sp, #0
  80002c4:	6078      	str	r0, [r7, #4]
-	__HAL_TIM_SET_COMPARE(servo_self->tim_pwm, servo_self->tim_channel_pwm,
+	__HAL_TIM_SET_COMPARE(self->tim_pwm, self->tim_channel_pwm,
  80002c6:	687b      	ldr	r3, [r7, #4]
  80002c8:	8b9b      	ldrh	r3, [r3, #28]
  80002ca:	2b00      	cmp	r3, #0
@@ -366,10 +366,10 @@ static void SetPWM_(HydroServo *servo_self)
  80002e6:	695b      	ldr	r3, [r3, #20]
  80002e8:	681b      	ldr	r3, [r3, #0]
  80002ea:	635a      	str	r2, [r3, #52]	@ 0x34
-			SPEED_TO_PWM_(servo_self->target_speed, servo_self->tim_pwm_period));
+			SPEED_TO_PWM_(self->target_speed, self->tim_pwm_period));
 }
  80002ec:	e039      	b.n	8000362 <SetPWM_+0xa4>
-	__HAL_TIM_SET_COMPARE(servo_self->tim_pwm, servo_self->tim_channel_pwm,
+	__HAL_TIM_SET_COMPARE(self->tim_pwm, self->tim_channel_pwm,
  80002ee:	687b      	ldr	r3, [r7, #4]
  80002f0:	8b9b      	ldrh	r3, [r3, #28]
  80002f2:	2b04      	cmp	r3, #4
@@ -391,7 +391,7 @@ static void SetPWM_(HydroServo *servo_self)
  8000314:	6393      	str	r3, [r2, #56]	@ 0x38
 }
  8000316:	e024      	b.n	8000362 <SetPWM_+0xa4>
-	__HAL_TIM_SET_COMPARE(servo_self->tim_pwm, servo_self->tim_channel_pwm,
+	__HAL_TIM_SET_COMPARE(self->tim_pwm, self->tim_channel_pwm,
  8000318:	687b      	ldr	r3, [r7, #4]
  800031a:	8b9b      	ldrh	r3, [r3, #28]
  800031c:	2b08      	cmp	r3, #8
@@ -413,7 +413,7 @@ static void SetPWM_(HydroServo *servo_self)
  800033e:	63d3      	str	r3, [r2, #60]	@ 0x3c
 }
  8000340:	e00f      	b.n	8000362 <SetPWM_+0xa4>
-	__HAL_TIM_SET_COMPARE(servo_self->tim_pwm, servo_self->tim_channel_pwm,
+	__HAL_TIM_SET_COMPARE(self->tim_pwm, self->tim_channel_pwm,
  8000342:	687b      	ldr	r3, [r7, #4]
  8000344:	8c1b      	ldrh	r3, [r3, #32]
  8000346:	461a      	mov	r2, r3

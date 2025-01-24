@@ -69,10 +69,10 @@ void hydroservo_CallbackByFeedback(HydroServo *self)
 		self->current_angle--;
 	}
 }
-//ИСПРАВИТЬ!!!!!!
+
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle)
 {
-	self->current_angle = origin_angle;
+	self->current_angle -= origin_angle;
 }
 
 void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle)

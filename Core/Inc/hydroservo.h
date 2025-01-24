@@ -22,7 +22,6 @@ typedef struct
 {
 	int32_t target_angle;
 	int16_t target_speed;
-
 	int32_t current_angle;
 	int16_t current_speed;
 
@@ -32,7 +31,6 @@ typedef struct
 	TIM_HandleTypeDef *tim_fb;
 	uint16_t tim_channel_pwm;
 	uint16_t tim_channel_fb;
-
 	uint16_t tim_pwm_period;
 	uint16_t fb_period;
 
@@ -52,5 +50,6 @@ void hydroservo_CallbackByFeedback(HydroServo *self);
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle);
 void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle);
 void hydroservo_CheckAngleRestrictions(HydroServo *self);
+HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed);
 
 #endif /* INC_SERVO_H_ */

@@ -378,6 +378,7 @@ static void MX_GPIO_Init(void)
 
 //перетащить внутрянку в отдельную функцию
 //сделать обработку от шумов
+//HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM2)

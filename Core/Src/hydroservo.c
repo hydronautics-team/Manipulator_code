@@ -5,7 +5,7 @@
 #define SPEED_TO_PWM_(speed, pwm_period) (pwm_period - (speed >= 0 ? speed : -speed))
 #define ANGLE_TO_DECIDEGREES_(angle, fb_period) ((angle * 3600) / fb_period)
 
-#define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 10
+#define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 7
 #define SEARCH_ORIGIN_WAITING_COUNT_ 1000
 
 static void SetDirection_(HydroServo *self);
@@ -45,7 +45,7 @@ HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed)
 		SetPWM_(self);
 		return HYDROSERVO_OK;
 	}
-	else return HYDROSERVO_ERROR;
+	else return HYDROSERVO_ERROR_LIMITS;
 }
 
 int32_t hydroservo_GetAngleRaw(HydroServo *self)
@@ -80,13 +80,15 @@ void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle)
 	self->max_angle = max_angle;
 }
 
-void hydroservo_CheckAngleRestrictions(HydroServo *self)
+HYDROSERVO_STATUS hydroservo_CheckAngleRestrictions(HydroServo *self)
 {
-	if((self->current_angle >= self->max_angle || self->current_angle <= 0)
+	if(((self->current_angle >= self->max_angle && self->target_speed > 0) || (self->current_angle <= 0 && self->target_speed < 0))
 			&& self->max_angle != 0)
 	{
 		hydroservo_SetSpeed(self, 0);
+		return HYDROSERVO_ERROR_LIMITS;
 	}
+	return HYDROSERVO_OK;
 }
 
 //почему переменные нельзя объявлять как static?
@@ -99,6 +101,7 @@ HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed)
 	//нормально ли объявлять счетчик внутри объявления цикла for??
 	for(int16_t i = 0; i < SEARCH_ORIGIN_WAITING_COUNT_; i++)
 	{
+		angle_previous_ = hydroservo_GetAngleRaw(self);
 		HAL_Delay(SEARCH_ORIGIN_DELAY_MILLISECONDS_);
 		if(hydroservo_GetAngleRaw(self) == angle_previous_)
 		{
@@ -106,7 +109,7 @@ HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed)
 			return HYDROSERVO_OK;
 		}
 	}
-	return HYDROSERVO_ERROR;
+	return HYDROSERVO_ERROR_TIMEOUT;
 }
 
 

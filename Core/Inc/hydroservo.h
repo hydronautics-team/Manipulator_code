@@ -12,10 +12,12 @@
 #include "stdint.h"
 #include "main.h"
 
+//стоит ли писать error перед названием ошибки?
 typedef enum
 {
 	HYDROSERVO_OK = 0,
-	HYDROSERVO_ERROR = -1
+	HYDROSERVO_ERROR_TIMEOUT = 1,
+	HYDROSERVO_ERROR_LIMITS = 2
 }HYDROSERVO_STATUS;
 
 typedef struct
@@ -49,7 +51,7 @@ int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self);
 void hydroservo_CallbackByFeedback(HydroServo *self);
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle);
 void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle);
-void hydroservo_CheckAngleRestrictions(HydroServo *self);
+HYDROSERVO_STATUS hydroservo_CheckAngleRestrictions(HydroServo *self);
 HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed);
 
 #endif /* INC_SERVO_H_ */

@@ -103,8 +103,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
-  hydroservo_Init(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO1_FB_PERIOD, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
-  hydroservo_Init(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO2_FB_PERIOD, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
+  hydroservo_Init(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO_FB_PERIOD, SERVO1_fb_impulse_per_rotate, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
+  hydroservo_Init(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO_FB_PERIOD, SERVO2_fb_impulse_per_rotate, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
 
   hydroservo_SearchOrigin(&servo1, -1800);
   hydroservo_SetOrigin(&servo1, hydroservo_GetAngleRaw(&servo1) + 100);
@@ -392,9 +392,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-//перетащить внутрянку в отдельную функцию
 //сделать обработку от шумов
-//HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM2)

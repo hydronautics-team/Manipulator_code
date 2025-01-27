@@ -3,7 +3,7 @@
 #include "hydroservo.h"
 
 #define SPEED_TO_PWM_(speed, pwm_period) (pwm_period - (speed >= 0 ? speed : -speed))
-#define ANGLE_TO_DECIDEGREES_(angle, fb_period) ((angle * 3600) / fb_period)
+#define ANGLE_TO_DECIDEGREES_(angle, fb_impulse_per_rotate) ((angle * 3600) / fb_impulse_per_rotate)
 
 #define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 7
 #define SEARCH_ORIGIN_WAITING_COUNT_ 1000
@@ -11,8 +11,8 @@
 static void SetDirection_(HydroServo *self);
 static void SetPWM_(HydroServo *self);
 
-void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm,
-		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period, uint16_t fb_period,
+void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb,
+		uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period, uint16_t tim_fb_period, uint16_t fb_impulse_per_rotate,
 		GPIO_TypeDef *direction_port, uint16_t direction_pin)
 {
 	self->tim_pwm = htim_pwm;
@@ -20,6 +20,7 @@ void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm,
 	self->tim_channel_pwm = channel_pwm;
 	self->tim_channel_fb = channel_fb;
 	self->tim_pwm_period = tim_pwm_period;
+	self->tim_fb_period = tim_fb_period;
 
 	self->direction_port = direction_port;
 	self->direction_pin = direction_pin;
@@ -28,7 +29,7 @@ void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm,
 	self->current_angle = 0;
 	self->current_speed = 0;
 	self->max_angle = 0;
-	self->fb_period = fb_period;
+	self->fb_impulse_per_rotate = fb_impulse_per_rotate;
 	hydroservo_SetSpeed(self, 0);
 }
 
@@ -55,19 +56,21 @@ int32_t hydroservo_GetAngleRaw(HydroServo *self)
 
 int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self)
 {
-	return ANGLE_TO_DECIDEGREES_(self->current_angle, self->fb_period);
+	return ANGLE_TO_DECIDEGREES_(self->current_angle, self->fb_impulse_per_rotate);
 }
 
 void hydroservo_CallbackByFeedback(HydroServo *self)
 {
-	if(self->target_speed >= 0)
-	{
-		self->current_angle++;
-	}
-	else
-	{
-		self->current_angle--;
-	}
+	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->tim_fb, self->tim_channel_fb);
+
+	if(!self->fb_flag) self->current_speed = captured_value - self->fb_buffer;
+	else self->current_speed = captured_value + self->tim_fb_period - self->fb_buffer;
+
+	self->fb_buffer = captured_value;
+	self->fb_flag = 0;
+
+	if(self->target_speed >= 0) self->current_angle++;
+	else self->current_angle--;
 }
 //смещать мин макс при установке нуля
 //макрос no min no max angle в котором лежит максимальное значение переменной

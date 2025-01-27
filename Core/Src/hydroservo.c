@@ -69,7 +69,10 @@ void hydroservo_CallbackByFeedback(HydroServo *self)
 		self->current_angle--;
 	}
 }
-
+//смещать мин макс при установке нуля
+//макрос no min no max angle в котором лежит максимальное значение переменной
+//hal max delay
+//макрос с макс значением типа в станд либе
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle)
 {
 	self->current_angle -= origin_angle;
@@ -80,6 +83,10 @@ void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle)
 	self->max_angle = max_angle;
 }
 
+//limits
+//проверку ограничений в callback
+//сделать скорость как скорость пересчитывать когда надо считать
+//сделать флаг для определения нулевой скорости
 HYDROSERVO_STATUS hydroservo_CheckAngleRestrictions(HydroServo *self)
 {
 	if(((self->current_angle >= self->max_angle && self->target_speed > 0) || (self->current_angle <= 0 && self->target_speed < 0))
@@ -92,6 +99,12 @@ HYDROSERVO_STATUS hydroservo_CheckAngleRestrictions(HydroServo *self)
 }
 
 //почему переменные нельзя объявлять как static?
+
+//сделать конечный автомат пометка в каком состоянии серва
+//сделать неблокирующей
+//отмечать крайние положения автоматически
+//сбрасывать
+//ноль мин макс и возможность получить эти значения
 
 HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed)
 {

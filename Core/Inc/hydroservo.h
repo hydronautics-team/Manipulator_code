@@ -50,6 +50,7 @@ void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm, TIM_HandleTy
 HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed);
 int32_t hydroservo_GetAngleRaw(HydroServo *self);
 int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self);
+void hydroservo_CallbackPeriodElapsed(HydroServo *self);
 void hydroservo_CallbackByFeedback(HydroServo *self);
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle);
 void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle);

@@ -64,13 +64,20 @@ void hydroservo_CallbackByFeedback(HydroServo *self)
 	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->tim_fb, self->tim_channel_fb);
 
 	if(!self->fb_flag) self->current_speed = captured_value - self->fb_buffer;
-	else self->current_speed = captured_value + self->tim_fb_period - self->fb_buffer;
+	else if (captured_value <= self->fb_buffer) self->current_speed = captured_value + self->tim_fb_period - self->fb_buffer;
+	else self->current_speed = self->tim_fb_period;
 
 	self->fb_buffer = captured_value;
 	self->fb_flag = 0;
 
 	if(self->target_speed >= 0) self->current_angle++;
 	else self->current_angle--;
+}
+
+void hydroservo_CallbackPeriodElapsed(HydroServo *self)
+{
+	if(self->fb_flag) self->current_speed = self->tim_fb_period;
+	else self->fb_flag = 1;
 }
 //смещать мин макс при установке нуля
 //макрос no min no max angle в котором лежит максимальное значение переменной

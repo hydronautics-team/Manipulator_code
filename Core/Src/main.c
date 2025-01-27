@@ -408,6 +408,15 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     }
 }
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM3)
+	{
+		hydroservo_CallbackPeriodElapsed(&servo1);
+		hydroservo_CallbackPeriodElapsed(&servo2);
+	}
+}
+
 /* USER CODE END 4 */
 
 /**

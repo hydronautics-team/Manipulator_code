@@ -35,6 +35,7 @@ typedef struct
 	int32_t max_angle;
 	int32_t min_angle;
 	uint16_t fb_impulse_per_rotate;
+	uint32_t fb_timer_clock;
 
 	TIM_HandleTypeDef *tim_pwm;
 	TIM_HandleTypeDef *tim_fb;
@@ -51,8 +52,9 @@ typedef struct
 
 void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb,
 		uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period, uint16_t tim_fb_period, uint16_t fb_impulse_per_rotate,
-		GPIO_TypeDef *direction_port, uint16_t direction_pin);
+		uint32_t fb_timer_clock, GPIO_TypeDef *direction_port, uint16_t direction_pin);
 HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed);
+int32_t hydroservo_GetSpeedMilliRPM(HydroServo *self);
 int32_t hydroservo_GetAngleRaw(HydroServo *self);
 int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self);
 void hydroservo_CallbackPeriodElapsed(HydroServo *self);

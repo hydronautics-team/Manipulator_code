@@ -1,9 +1,11 @@
 //в set speed принмать скорость, посмотреть что возвращают hal функции и ставить ошибку когда у них ошибка
 
 #include "hydroservo.h"
+#include "limits.h"
 
 #define SPEED_TO_PWM_(speed, pwm_period) (pwm_period - (speed >= 0 ? speed : -speed))
 #define ANGLE_TO_DECIDEGREES_(angle, fb_impulse_per_rotate) ((angle * 3600) / fb_impulse_per_rotate)
+#define SPEED_TO_MILLI_RPM_(speed, fb_impulse_per_rotate, timer_clock) ((1000 * timer_clock) / (speed * fb_impulse_per_rotate))
 
 #define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 7
 #define SEARCH_ORIGIN_WAITING_COUNT_ 1000
@@ -13,7 +15,7 @@ static void SetPWM_(HydroServo *self);
 
 void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb,
 		uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period, uint16_t tim_fb_period, uint16_t fb_impulse_per_rotate,
-		GPIO_TypeDef *direction_port, uint16_t direction_pin)
+		uint32_t fb_timer_clock, GPIO_TypeDef *direction_port, uint16_t direction_pin)
 {
 	self->tim_pwm = htim_pwm;
 	self->tim_fb = htim_fb;
@@ -21,6 +23,7 @@ void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm, TIM_HandleTy
 	self->tim_channel_fb = channel_fb;
 	self->tim_pwm_period = tim_pwm_period;
 	self->tim_fb_period = tim_fb_period;
+	self->fb_timer_clock = fb_timer_clock;
 
 	self->direction_port = direction_port;
 	self->direction_pin = direction_pin;
@@ -46,6 +49,22 @@ HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed)
 		return HYDROSERVO_OK;
 	}
 	else return HYDROSERVO_ERROR_LIMITS;
+}
+
+int32_t hydroservo_GetSpeedRaw(HydroServo *self)
+{
+	return self->current_speed;
+}
+
+//переписать условия
+//if(self->target_speed < 0 && self->current_speed == 0)
+int32_t hydroservo_GetSpeedMilliRPM(HydroServo *self)
+{
+	if(self->current_speed == self->tim_fb_period || self->target_speed == 0) return 0;
+	else if(self->target_speed > 0 && self->current_speed != 0) return SPEED_TO_MILLI_RPM_(self->current_speed, self->fb_impulse_per_rotate, self->fb_timer_clock);
+	else if(self->target_speed < 0 && self->current_speed != 0) return -SPEED_TO_MILLI_RPM_(self->current_speed, self->fb_impulse_per_rotate, self->fb_timer_clock);
+	else if(self->target_speed > 0 && self->current_speed == 0) return INT_MAX;
+	else return INT_MIN;
 }
 
 int32_t hydroservo_GetAngleRaw(HydroServo *self)
@@ -79,9 +98,6 @@ void hydroservo_CallbackPeriodElapsed(HydroServo *self)
 	else self->fb_flag = 1;
 }
 
-//макрос no min no max angle в котором лежит максимальное значение переменной
-//hal max delay
-//макрос с макс значением типа в станд либе
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle)
 {
 	self->current_angle -= origin_angle;
@@ -109,10 +125,8 @@ int32_t hydroservo_GetAngleMin(HydroServo *self)
 	return self->min_angle;
 }
 
-//limits
 //проверку ограничений в callback
 //сделать скорость как скорость пересчитывать когда надо считать
-//сделать флаг для определения нулевой скорости
 HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 {
 	if((self->current_angle >= self->max_angle && self->target_speed > 0) ||

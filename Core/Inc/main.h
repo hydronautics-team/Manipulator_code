@@ -95,6 +95,7 @@ void Error_Handler(void);
 #define SERVO2_FB_TIM_CHANNEL TIM_CHANNEL_4
 #define SERVO_PWM_PERIOD 3599
 #define SERVO_FB_PERIOD 65535
+#define FB_TIMER_CLOCK 72000
 #define SERVO1_fb_impulse_per_rotate 2953
 #define SERVO2_fb_impulse_per_rotate 700 //надо померить
 /* USER CODE END Private defines */

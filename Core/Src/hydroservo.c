@@ -9,6 +9,7 @@
 
 #define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 7
 #define SEARCH_ORIGIN_WAITING_COUNT_ 1000
+#define SEARCH_ORIGIN_MIN_SPEED_ 1000
 
 static void SetDirection_(HydroServo *self);
 static void SetPWM_(HydroServo *self);
@@ -144,17 +145,16 @@ HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 //сделать неблокирующей
 //отмечать крайние положения автоматически
 
+//передавать мин скорость в функцию
 HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed)
 {
-	int32_t angle_previous_ = hydroservo_GetAngleRaw(self);
 	hydroservo_SetSpeed(self, speed);
 
 	//нормально ли объявлять счетчик внутри объявления цикла for??
 	for(int16_t i = 0; i < SEARCH_ORIGIN_WAITING_COUNT_; i++)
 	{
-		angle_previous_ = hydroservo_GetAngleRaw(self);
 		HAL_Delay(SEARCH_ORIGIN_DELAY_MILLISECONDS_);
-		if(hydroservo_GetAngleRaw(self) == angle_previous_)
+		if(hydroservo_GetSpeedMilliRPM(self) <= SEARCH_ORIGIN_MIN_SPEED_)
 		{
 			hydroservo_SetSpeed(self, 0);
 			return HYDROSERVO_OK;
@@ -163,17 +163,10 @@ HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed)
 	return HYDROSERVO_ERROR_TIMEOUT;
 }
 
-
 static void SetDirection_(HydroServo *self)
 {
-	if(self->target_speed >= 0)
-	{
-		HAL_GPIO_WritePin(self->direction_port, self->direction_pin, SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(self->direction_port, self->direction_pin, RESET);
-	}
+	if(self->target_speed >= 0) HAL_GPIO_WritePin(self->direction_port, self->direction_pin, SET);
+	else HAL_GPIO_WritePin(self->direction_port, self->direction_pin, RESET);
 }
 static void SetPWM_(HydroServo *self)
 {

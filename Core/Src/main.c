@@ -152,7 +152,7 @@ int main(void)
 	  	  	  HAL_Delay(20);
 		*/
 
-	  if(hydroservo_CheckAngleRestrictions(&servo1) != HYDROSERVO_OK)
+	  if(hydroservo_CheckAngleLimits(&servo1) != HYDROSERVO_OK)
 	  {
 		  HAL_GPIO_TogglePin(LED_OK_GPIO_Port, LED_OK_Pin);
 		  HAL_GPIO_TogglePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin);

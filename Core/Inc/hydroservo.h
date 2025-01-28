@@ -13,6 +13,10 @@
 #include "main.h"
 
 //стоит ли писать error перед названием ошибки?
+
+#define HYDROSERVO_NO_MAX_ANGLE 2147483647
+#define HYDROSERVO_NO_MIN_ANGLE -2147483647
+
 typedef enum
 {
 	HYDROSERVO_OK = 0,
@@ -29,6 +33,7 @@ typedef struct
 	uint8_t fb_flag;
 
 	int32_t max_angle;
+	int32_t min_angle;
 	uint16_t fb_impulse_per_rotate;
 
 	TIM_HandleTypeDef *tim_pwm;
@@ -54,7 +59,10 @@ void hydroservo_CallbackPeriodElapsed(HydroServo *self);
 void hydroservo_CallbackByFeedback(HydroServo *self);
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle);
 void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle);
-HYDROSERVO_STATUS hydroservo_CheckAngleRestrictions(HydroServo *self);
+void hydroservo_SetAngleMin(HydroServo *self, int32_t min_angle);
+int32_t hydroservo_GetAngleMax(HydroServo *self);
+int32_t hydroservo_GetAngleMin(HydroServo *self);
+HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self);
 HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed);
 
 #endif /* INC_SERVO_H_ */

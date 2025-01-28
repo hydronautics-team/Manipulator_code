@@ -28,18 +28,17 @@ void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm, TIM_HandleTy
 	self->target_angle = 0;
 	self->current_angle = 0;
 	self->current_speed = 0;
-	self->max_angle = 0;
+	self->max_angle = HYDROSERVO_NO_MAX_ANGLE;
+	self->min_angle = HYDROSERVO_NO_MIN_ANGLE;
 	self->fb_impulse_per_rotate = fb_impulse_per_rotate;
 	hydroservo_SetSpeed(self, 0);
 }
 
-//нормально ли писать такие длинные условия?
-
 HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed)
 {
-	if((speed == 0 || self->max_angle == 0) ||
+	if((speed == 0) ||
 			(speed > 0 && self->current_angle < self->max_angle) ||
-			(speed < 0 && self->current_angle > 0))
+			(speed < 0 && self->current_angle > self->min_angle))
 	{
 		self->target_speed = speed;
 		SetDirection_(self);
@@ -79,13 +78,15 @@ void hydroservo_CallbackPeriodElapsed(HydroServo *self)
 	if(self->fb_flag) self->current_speed = self->tim_fb_period;
 	else self->fb_flag = 1;
 }
-//смещать мин макс при установке нуля
+
 //макрос no min no max angle в котором лежит максимальное значение переменной
 //hal max delay
 //макрос с макс значением типа в станд либе
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle)
 {
 	self->current_angle -= origin_angle;
+	self->max_angle -= origin_angle;
+	self->min_angle -= origin_angle;
 }
 
 void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle)
@@ -93,14 +94,29 @@ void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle)
 	self->max_angle = max_angle;
 }
 
+void hydroservo_SetAngleMin(HydroServo *self, int32_t min_angle)
+{
+	self->min_angle = min_angle;
+}
+
+int32_t hydroservo_GetAngleMax(HydroServo *self)
+{
+	return self->max_angle;
+}
+
+int32_t hydroservo_GetAngleMin(HydroServo *self)
+{
+	return self->min_angle;
+}
+
 //limits
 //проверку ограничений в callback
 //сделать скорость как скорость пересчитывать когда надо считать
 //сделать флаг для определения нулевой скорости
-HYDROSERVO_STATUS hydroservo_CheckAngleRestrictions(HydroServo *self)
+HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 {
-	if(((self->current_angle >= self->max_angle && self->target_speed > 0) || (self->current_angle <= 0 && self->target_speed < 0))
-			&& self->max_angle != 0)
+	if((self->current_angle >= self->max_angle && self->target_speed > 0) ||
+			(self->current_angle <= self->min_angle && self->target_speed < 0))
 	{
 		hydroservo_SetSpeed(self, 0);
 		return HYDROSERVO_ERROR_LIMITS;

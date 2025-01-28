@@ -79,6 +79,8 @@ int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self)
 
 void hydroservo_CallbackByFeedback(HydroServo *self)
 {
+	hydroservo_CheckAngleLimits(self);
+
 	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->tim_fb, self->tim_channel_fb);
 
 	if(!self->fb_flag) self->current_speed = captured_value - self->fb_buffer;
@@ -125,8 +127,6 @@ int32_t hydroservo_GetAngleMin(HydroServo *self)
 	return self->min_angle;
 }
 
-//проверку ограничений в callback
-//сделать скорость как скорость пересчитывать когда надо считать
 HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 {
 	if((self->current_angle >= self->max_angle && self->target_speed > 0) ||
@@ -143,8 +143,6 @@ HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 //сделать конечный автомат пометка в каком состоянии серва
 //сделать неблокирующей
 //отмечать крайние положения автоматически
-//сбрасывать
-//ноль мин макс и возможность получить эти значения
 
 HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed)
 {

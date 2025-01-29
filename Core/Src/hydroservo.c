@@ -14,27 +14,15 @@
 static void SetDirection_(HydroServo *self);
 static void SetPWM_(HydroServo *self);
 
-void hydroservo_Init(HydroServo *self, TIM_HandleTypeDef *htim_pwm, TIM_HandleTypeDef *htim_fb,
-		uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period, uint16_t tim_fb_period, uint16_t fb_impulse_per_rotate,
-		uint32_t fb_timer_clock, GPIO_TypeDef *direction_port, uint16_t direction_pin)
+void hydroservo_Init(HydroServo *self, hydroservoConfig config)
 {
-	self->tim_pwm = htim_pwm;
-	self->tim_fb = htim_fb;
-	self->tim_channel_pwm = channel_pwm;
-	self->tim_channel_fb = channel_fb;
-	self->tim_pwm_period = tim_pwm_period;
-	self->tim_fb_period = tim_fb_period;
-	self->fb_timer_clock = fb_timer_clock;
-
-	self->direction_port = direction_port;
-	self->direction_pin = direction_pin;
+	self->config = config;
 
 	self->target_angle = 0;
 	self->current_angle = 0;
 	self->current_speed = 0;
 	self->max_angle = HYDROSERVO_NO_MAX_ANGLE;
 	self->min_angle = HYDROSERVO_NO_MIN_ANGLE;
-	self->fb_impulse_per_rotate = fb_impulse_per_rotate;
 	hydroservo_SetSpeed(self, 0);
 }
 
@@ -59,10 +47,10 @@ int32_t hydroservo_GetSpeedRaw(HydroServo *self)
 
 int32_t hydroservo_GetSpeedMilliRPM(HydroServo *self)
 {
-	if(self->current_speed == self->tim_fb_period || self->target_speed == 0) return 0;
+	if(self->current_speed == self->config.tim_fb_period || self->target_speed == 0) return 0;
 	else if(self->current_speed != 0) return self->target_speed > 0 ?
-			SPEED_TO_MILLI_RPM_(self->current_speed, self->fb_impulse_per_rotate, self->fb_timer_clock) :
-			-SPEED_TO_MILLI_RPM_(self->current_speed, self->fb_impulse_per_rotate, self->fb_timer_clock);
+			SPEED_TO_MILLI_RPM_(self->current_speed, self->config.fb_impulse_per_rotate, self->config.tim_fb_clock) :
+			-SPEED_TO_MILLI_RPM_(self->current_speed, self->config.fb_impulse_per_rotate, self->config.tim_fb_clock);
 	else return self->target_speed > 0 ? INT_MAX : INT_MIN;
 }
 
@@ -73,19 +61,19 @@ int32_t hydroservo_GetAngleRaw(HydroServo *self)
 
 int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self)
 {
-	return ANGLE_TO_DECIDEGREES_(self->current_angle, self->fb_impulse_per_rotate);
+	return ANGLE_TO_DECIDEGREES_(self->current_angle, self->config.fb_impulse_per_rotate);
 }
 
 void hydroservo_CallbackByFeedback(HydroServo *self)
 {
 	hydroservo_CheckAngleLimits(self);
 
-	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->tim_fb, self->tim_channel_fb);
+	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->config.tim_fb, self->config.tim_channel_fb);
 
 	if(!self->fb_flag) self->current_speed = captured_value - self->fb_buffer;
 	else if (captured_value <= self->fb_buffer)
-		self->current_speed = captured_value + self->tim_fb_period - self->fb_buffer;
-	else self->current_speed = self->tim_fb_period;
+		self->current_speed = captured_value + self->config.tim_fb_period - self->fb_buffer;
+	else self->current_speed = self->config.tim_fb_period;
 
 	self->fb_buffer = captured_value;
 	self->fb_flag = 0;
@@ -96,7 +84,7 @@ void hydroservo_CallbackByFeedback(HydroServo *self)
 
 void hydroservo_CallbackPeriodElapsed(HydroServo *self)
 {
-	if(self->fb_flag) self->current_speed = self->tim_fb_period;
+	if(self->fb_flag) self->current_speed = self->config.tim_fb_period;
 	else self->fb_flag = 1;
 }
 
@@ -159,11 +147,11 @@ HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, u
 
 static void SetDirection_(HydroServo *self)
 {
-	if(self->target_speed >= 0) HAL_GPIO_WritePin(self->direction_port, self->direction_pin, SET);
-	else HAL_GPIO_WritePin(self->direction_port, self->direction_pin, RESET);
+	if(self->target_speed >= 0) HAL_GPIO_WritePin(self->config.direction_port, self->config.direction_pin, SET);
+	else HAL_GPIO_WritePin(self->config.direction_port, self->config.direction_pin, RESET);
 }
 static void SetPWM_(HydroServo *self)
 {
-	__HAL_TIM_SET_COMPARE(self->tim_pwm, self->tim_channel_pwm,
-			SPEED_TO_PWM_(self->target_speed, self->tim_pwm_period));
+	__HAL_TIM_SET_COMPARE(self->config.tim_pwm, self->config.tim_channel_pwm,
+			SPEED_TO_PWM_(self->target_speed, self->config.tim_pwm_period));
 }

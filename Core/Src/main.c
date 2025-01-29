@@ -103,8 +103,35 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
-  hydroservo_Init(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO_FB_PERIOD, SERVO1_fb_impulse_per_rotate, FB_TIMER_CLOCK, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
-  hydroservo_Init(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO_FB_PERIOD, SERVO2_fb_impulse_per_rotate, FB_TIMER_CLOCK, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
+
+  hydroservoConfig servo1_config;
+  hydroservoConfig servo2_config;
+
+  servo1_config.tim_pwm = &htim3;
+  servo1_config.tim_fb = &htim3;
+  servo1_config.tim_channel_pwm = SERVO1_PWM_TIM_CHANNEL;
+  servo1_config.tim_channel_fb = SERVO1_FB_TIM_CHANNEL;
+  servo1_config.tim_pwm_period = SERVO_PWM_PERIOD;
+  servo1_config.tim_fb_period = SERVO_FB_PERIOD;
+  servo1_config.tim_fb_clock = FB_TIMER_CLOCK;
+  servo1_config.direction_port = SRV1_DIR_GPIO_Port;
+  servo1_config.direction_pin = SRV1_DIR_Pin;
+  servo1_config.fb_impulse_per_rotate = SERVO1_fb_impulse_per_rotate;
+
+  servo2_config.tim_pwm = &htim3;
+  servo2_config.tim_fb = &htim3;
+  servo2_config.tim_channel_pwm = SERVO2_PWM_TIM_CHANNEL;
+  servo2_config.tim_channel_fb = SERVO2_FB_TIM_CHANNEL;
+  servo2_config.tim_pwm_period = SERVO_PWM_PERIOD;
+  servo2_config.tim_fb_period = SERVO_FB_PERIOD;
+  servo2_config.tim_fb_clock = FB_TIMER_CLOCK;
+  servo2_config.direction_port = SRV2_DIR_GPIO_Port;
+  servo2_config.direction_pin = SRV2_DIR_Pin;
+  servo2_config.fb_impulse_per_rotate = SERVO2_fb_impulse_per_rotate;
+
+
+  hydroservo_Init(&servo1, servo1_config);
+  hydroservo_Init(&servo2, servo2_config);
 
   hydroservo_SearchAngleLimit(&servo1, -1800, SERVO_MIN_SPEED_CALIBRATING);
   hydroservo_SetAngleMin(&servo1, hydroservo_GetAngleRaw(&servo1) + 100);

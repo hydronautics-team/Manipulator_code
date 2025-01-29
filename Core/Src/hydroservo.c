@@ -24,6 +24,9 @@ void hydroservo_Init(HydroServo *self, hydroservoConfig config)
 	self->max_angle = HYDROSERVO_NO_MAX_ANGLE;
 	self->min_angle = HYDROSERVO_NO_MIN_ANGLE;
 	hydroservo_SetSpeed(self, 0);
+
+	HAL_TIM_PWM_Start(self->config.tim_pwm, self->config.tim_channel_pwm);
+	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb);
 }
 
 HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed)

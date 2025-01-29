@@ -6,10 +6,10 @@
 #define SPEED_TO_PWM_(speed, pwm_period) (pwm_period - (speed >= 0 ? speed : -speed))
 #define ANGLE_TO_DECIDEGREES_(angle, fb_impulse_per_rotate) ((angle * 3600) / fb_impulse_per_rotate)
 #define SPEED_TO_MILLI_RPM_(speed, fb_impulse_per_rotate, timer_clock) ((1000 * timer_clock) / (speed * fb_impulse_per_rotate))
+#define ABS_(number) (number >= 0 ? number : -number)
 
 #define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 7
 #define SEARCH_ORIGIN_WAITING_COUNT_ 1000
-#define SEARCH_ORIGIN_MIN_SPEED_ 1000
 
 static void SetDirection_(HydroServo *self);
 static void SetPWM_(HydroServo *self);
@@ -83,7 +83,8 @@ void hydroservo_CallbackByFeedback(HydroServo *self)
 	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->tim_fb, self->tim_channel_fb);
 
 	if(!self->fb_flag) self->current_speed = captured_value - self->fb_buffer;
-	else if (captured_value <= self->fb_buffer) self->current_speed = captured_value + self->tim_fb_period - self->fb_buffer;
+	else if (captured_value <= self->fb_buffer)
+		self->current_speed = captured_value + self->tim_fb_period - self->fb_buffer;
 	else self->current_speed = self->tim_fb_period;
 
 	self->fb_buffer = captured_value;
@@ -137,22 +138,17 @@ HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 	return HYDROSERVO_OK;
 }
 
-//почему переменные нельзя объявлять как static?
-
 //сделать конечный автомат пометка в каком состоянии серва
 //сделать неблокирующей
-//отмечать крайние положения автоматически
 
-//передавать мин скорость в функцию
-HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed)
+HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm)
 {
 	hydroservo_SetSpeed(self, speed);
 
-	//нормально ли объявлять счетчик внутри объявления цикла for??
 	for(int16_t i = 0; i < SEARCH_ORIGIN_WAITING_COUNT_; i++)
 	{
 		HAL_Delay(SEARCH_ORIGIN_DELAY_MILLISECONDS_);
-		if(hydroservo_GetSpeedMilliRPM(self) <= SEARCH_ORIGIN_MIN_SPEED_)
+		if(ABS_(hydroservo_GetSpeedMilliRPM(self)) <= min_speed_milli_rpm)
 		{
 			hydroservo_SetSpeed(self, 0);
 			return HYDROSERVO_OK;

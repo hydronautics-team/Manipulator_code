@@ -21,7 +21,8 @@ typedef enum
 {
 	HYDROSERVO_OK = 0,
 	HYDROSERVO_ERROR_TIMEOUT = 1,
-	HYDROSERVO_ERROR_LIMITS = 2
+	HYDROSERVO_ERROR_LIMITS = 2,
+	HYDROSERVO_ERROR_INCOR_DATA = 3
 }HYDROSERVO_STATUS;
 
 typedef struct
@@ -65,6 +66,6 @@ void hydroservo_SetAngleMin(HydroServo *self, int32_t min_angle);
 int32_t hydroservo_GetAngleMax(HydroServo *self);
 int32_t hydroservo_GetAngleMin(HydroServo *self);
 HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self);
-HYDROSERVO_STATUS hydroservo_SearchOrigin(HydroServo *self, int16_t speed);
+HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm);
 
 #endif /* INC_SERVO_H_ */

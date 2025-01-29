@@ -106,11 +106,11 @@ int main(void)
   hydroservo_Init(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO_FB_PERIOD, SERVO1_fb_impulse_per_rotate, FB_TIMER_CLOCK, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
   hydroservo_Init(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO_FB_PERIOD, SERVO2_fb_impulse_per_rotate, FB_TIMER_CLOCK, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
 
-  hydroservo_SearchOrigin(&servo1, -1800);
-  hydroservo_SetOrigin(&servo1, hydroservo_GetAngleRaw(&servo1) + 100);
-  hydroservo_SearchOrigin(&servo1, 1800);
-  int32_t angle_max = hydroservo_GetAngleRaw(&servo1);
+  hydroservo_SearchAngleLimit(&servo1, -1800, SERVO_MIN_SPEED_CALIBRATING);
+  hydroservo_SetAngleMin(&servo1, hydroservo_GetAngleRaw(&servo1) + 100);
+  hydroservo_SearchAngleLimit(&servo1, 1800, SERVO_MIN_SPEED_CALIBRATING);
   hydroservo_SetAngleMax(&servo1, hydroservo_GetAngleRaw(&servo1) - 100);
+  int32_t angle_max = hydroservo_GetAngleMax(&servo1);
   hydroservo_SetSpeed(&servo1, -1000);
   while(1)
   {

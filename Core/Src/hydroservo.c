@@ -57,15 +57,13 @@ int32_t hydroservo_GetSpeedRaw(HydroServo *self)
 	return self->current_speed;
 }
 
-//переписать условия
-//if(self->target_speed < 0 && self->current_speed == 0)
 int32_t hydroservo_GetSpeedMilliRPM(HydroServo *self)
 {
 	if(self->current_speed == self->tim_fb_period || self->target_speed == 0) return 0;
-	else if(self->target_speed > 0 && self->current_speed != 0) return SPEED_TO_MILLI_RPM_(self->current_speed, self->fb_impulse_per_rotate, self->fb_timer_clock);
-	else if(self->target_speed < 0 && self->current_speed != 0) return -SPEED_TO_MILLI_RPM_(self->current_speed, self->fb_impulse_per_rotate, self->fb_timer_clock);
-	else if(self->target_speed > 0 && self->current_speed == 0) return INT_MAX;
-	else return INT_MIN;
+	else if(self->current_speed != 0) return self->target_speed > 0 ?
+			SPEED_TO_MILLI_RPM_(self->current_speed, self->fb_impulse_per_rotate, self->fb_timer_clock) :
+			-SPEED_TO_MILLI_RPM_(self->current_speed, self->fb_impulse_per_rotate, self->fb_timer_clock);
+	else return self->target_speed > 0 ? INT_MAX : INT_MIN;
 }
 
 int32_t hydroservo_GetAngleRaw(HydroServo *self)

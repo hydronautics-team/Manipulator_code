@@ -42,6 +42,13 @@
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
+//ОТЛАДКА!!!
+int32_t cur_spd;
+int32_t cur_spd_raw;
+int16_t speed;
+int32_t angle_min;
+int32_t angle_max;
+
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
@@ -103,7 +110,7 @@ int main(void)
   hydroservoConfig servo2_config;
 
   servo1_config.tim_pwm = &htim3;
-  servo1_config.tim_fb = &htim3;
+  servo1_config.tim_fb = &htim2;
   servo1_config.tim_channel_pwm = SERVO1_PWM_TIM_CHANNEL;
   servo1_config.tim_channel_fb = SERVO1_FB_TIM_CHANNEL;
   servo1_config.tim_pwm_period = SERVO_PWM_PERIOD;
@@ -114,7 +121,7 @@ int main(void)
   servo1_config.fb_impulse_per_rotate = SERVO1_fb_impulse_per_rotate;
 
   servo2_config.tim_pwm = &htim3;
-  servo2_config.tim_fb = &htim3;
+  servo2_config.tim_fb = &htim2;
   servo2_config.tim_channel_pwm = SERVO2_PWM_TIM_CHANNEL;
   servo2_config.tim_channel_fb = SERVO2_FB_TIM_CHANNEL;
   servo2_config.tim_pwm_period = SERVO_PWM_PERIOD;
@@ -128,12 +135,13 @@ int main(void)
   hydroservo_Init(&servo1, servo1_config);
   hydroservo_Init(&servo2, servo2_config);
 
-  hydroservo_SearchAngleLimit(&servo1, -1800, SERVO_MIN_SPEED_CALIBRATING);
-  hydroservo_SetAngleMin(&servo1, hydroservo_GetAngleRaw(&servo1) + 100);
-  hydroservo_SearchAngleLimit(&servo1, 1800, SERVO_MIN_SPEED_CALIBRATING);
-  hydroservo_SetAngleMax(&servo1, hydroservo_GetAngleRaw(&servo1) - 100);
-  int32_t angle_max = hydroservo_GetAngleMax(&servo1);
-  hydroservo_SetSpeed(&servo1, -1000);
+  hydroservo_SearchAngleLimit(&servo1, -1300, SERVO_MIN_SPEED_CALIBRATING);
+  hydroservo_SetAngleMin(&servo1, hydroservo_GetAngleRaw(&servo1) + 10);
+  hydroservo_SearchAngleLimit(&servo1, 1300, SERVO_MIN_SPEED_CALIBRATING);
+  hydroservo_SetAngleMax(&servo1, hydroservo_GetAngleRaw(&servo1) - 10);
+  angle_max = hydroservo_GetAngleMax(&servo1);
+  angle_min = hydroservo_GetAngleMin(&servo1);
+  hydroservo_SetSpeed(&servo1, -800);
   while(1)
   {
 	  if(hydroservo_GetAngleRaw(&servo1) <= angle_max - 200)
@@ -145,7 +153,7 @@ int main(void)
   HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, SET);
   HAL_Delay(1000);
   int8_t dir = -1;
-  int16_t speed = 3599;
+  speed = 1000;
   hydroservo_SetSpeed(&servo1, speed * dir);
   /* USER CODE END 2 */
 
@@ -173,15 +181,13 @@ int main(void)
 	  	  	  }
 	  	  	  HAL_Delay(20);
 		*/
-
-	  if(hydroservo_CheckAngleLimits(&servo1) != HYDROSERVO_OK)
+	  if(servo1.target_speed == 0)
 	  {
-		  HAL_GPIO_TogglePin(LED_OK_GPIO_Port, LED_OK_Pin);
-		  HAL_GPIO_TogglePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin);
 		  dir *= -1;
 		  hydroservo_SetSpeed(&servo1, speed * dir);
+		  HAL_GPIO_TogglePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin);
+		  HAL_GPIO_TogglePin(LED_OK_GPIO_Port, LED_OK_Pin);
 	  }
-
   }
     /* USER CODE END WHILE */
 
@@ -196,7 +202,8 @@ int main(void)
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0}
+  ;
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -415,6 +422,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 //сделать обработку от шумов
+
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM2)
@@ -432,7 +440,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim->Instance == TIM3)
+	if(htim->Instance == TIM2)
 	{
 		hydroservo_CallbackPeriodElapsed(&servo1);
 		hydroservo_CallbackPeriodElapsed(&servo2);

@@ -8,7 +8,7 @@
 #define SPEED_TO_MILLI_RPM_(speed, fb_impulse_per_rotate, timer_clock) ((1000 * timer_clock) / (speed * fb_impulse_per_rotate))
 #define ABS_(number) (number >= 0 ? number : -number)
 
-#define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 7
+#define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 20
 #define SEARCH_ORIGIN_WAITING_COUNT_ 1000
 
 static void SetDirection_(HydroServo *self);
@@ -23,9 +23,12 @@ void hydroservo_Init(HydroServo *self, hydroservoConfig config)
 	self->current_speed = 0;
 	self->max_angle = HYDROSERVO_NO_MAX_ANGLE;
 	self->min_angle = HYDROSERVO_NO_MIN_ANGLE;
+	self->fb_buffer = 0;
+	self->fb_flag = 0;
 	hydroservo_SetSpeed(self, 0);
 
 	HAL_TIM_PWM_Start(self->config.tim_pwm, self->config.tim_channel_pwm);
+	HAL_TIM_Base_Start_IT(self->config.tim_fb);
 	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb);
 }
 
@@ -135,10 +138,9 @@ HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm)
 {
 	hydroservo_SetSpeed(self, speed);
-
-	for(int16_t i = 0; i < SEARCH_ORIGIN_WAITING_COUNT_; i++)
+	HAL_Delay(SEARCH_ORIGIN_DELAY_MILLISECONDS_);
+	for(int32_t i = 0; i < INT_MAX; i++)
 	{
-		HAL_Delay(SEARCH_ORIGIN_DELAY_MILLISECONDS_);
 		if(ABS_(hydroservo_GetSpeedMilliRPM(self)) <= min_speed_milli_rpm)
 		{
 			hydroservo_SetSpeed(self, 0);

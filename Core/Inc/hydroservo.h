@@ -60,6 +60,7 @@ typedef struct
 
 void hydroservo_Init(HydroServo *self, hydroservoConfig config);
 HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed);
+int32_t hydroservo_GetSpeedRaw(HydroServo *self);
 int32_t hydroservo_GetSpeedMilliRPM(HydroServo *self);
 int32_t hydroservo_GetAngleRaw(HydroServo *self);
 int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self);

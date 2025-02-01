@@ -82,7 +82,8 @@ void hydroservo_SetAngleMin(HydroServo *self, int32_t min_angle);
 void hydroservo_SetLimitsOffset(HydroServo *self, uint16_t offset);
 
 HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self);
-HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm);
+//HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm);
+HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, uint16_t delay);
 HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm);
 
 #endif /* INC_SERVO_H_ */

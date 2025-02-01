@@ -131,28 +131,22 @@ int main(void)
   servo2_config.direction_pin = SRV2_DIR_Pin;
   servo2_config.fb_impulse_per_rotate = SERVO2_fb_impulse_per_rotate;
 
-
+  //ctrl shift space для просмотра аргументов
   hydroservo_Init(&servo1, servo1_config);
   hydroservo_Init(&servo2, servo2_config);
 
-  hydroservo_SearchAngleLimit(&servo1, -1300, SERVO_MIN_SPEED_CALIBRATING);
-  hydroservo_SetAngleMin(&servo1, hydroservo_GetAngleRaw(&servo1) + 10);
-  hydroservo_SearchAngleLimit(&servo1, 1300, SERVO_MIN_SPEED_CALIBRATING);
-  hydroservo_SetAngleMax(&servo1, hydroservo_GetAngleRaw(&servo1) - 10);
-  angle_max = hydroservo_GetAngleMax(&servo1);
-  angle_min = hydroservo_GetAngleMin(&servo1);
-  hydroservo_SetSpeed(&servo1, -800);
-  while(1)
-  {
-	  if(hydroservo_GetAngleRaw(&servo1) <= angle_max - 200)
-	  {
-		  hydroservo_SetSpeed(&servo1, 0);
-		  break;
-	  }
-  }
+  hydroservo_SearchAngleLimit(&servo1, 1000, CALIBRATING_DELAY);
+  HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, SET);
+  hydroservo_SearchAngleLimit(&servo1, -1000, CALIBRATING_DELAY);
+  HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, RESET);
+  hydroservo_SetLimitsOffset(&servo1, 100);
+
+  hydroservo_SetSpeed(&servo1, 800);
+  HAL_Delay(1000);
+  hydroservo_SetSpeed(&servo1, 0);
   HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, SET);
   HAL_Delay(1000);
-  int8_t dir = -1;
+  int8_t dir = 1;
   speed = 1000;
   hydroservo_SetSpeed(&servo1, speed * dir);
   /* USER CODE END 2 */
@@ -188,6 +182,8 @@ int main(void)
 		  HAL_GPIO_TogglePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin);
 		  HAL_GPIO_TogglePin(LED_OK_GPIO_Port, LED_OK_Pin);
 	  }
+	  cur_spd = hydroservo_GetSpeedMilliRPM(&servo1);
+
   }
     /* USER CODE END WHILE */
 

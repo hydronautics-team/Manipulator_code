@@ -20,7 +20,6 @@
 typedef enum
 {
 	HYDROSERVO_OK = 0,
-	HYDROSERVO_ROTATE,
 	HYDROSERVO_CALIBRATE,
 	HYDROSERVO_ERROR_TIMEOUT,
 	HYDROSERVO_ERROR_LIMITS,
@@ -41,6 +40,10 @@ typedef struct
 	uint16_t direction_pin;
 
 	uint16_t fb_impulse_per_rotate;
+
+	int16_t calibrating_speed;
+	uint8_t calibrating_delay;
+	//uint8_t calibrating_stop_speed
 }hydroservoConfig;
 //может лучше hydroservo или Hydroservo
 typedef struct
@@ -48,9 +51,9 @@ typedef struct
 	int32_t target_angle;
 	int16_t target_speed;
 	int32_t current_angle;
-	uint16_t current_speed;
+	uint16_t fb_impulse_period;
 
-	uint16_t fb_buffer;
+	uint16_t last_captured_value;
 	uint8_t fb_flag;
 
 	int32_t max_angle;
@@ -64,26 +67,23 @@ typedef struct
 
 void hydroservo_Init(HydroServo *self, hydroservoConfig config);
 
-void hydroservo_CallbackPeriodElapsed(HydroServo *self);
-void hydroservo_CallbackByFeedback(HydroServo *self);
-
-int32_t hydroservo_GetSpeedRaw(HydroServo *self);
-int32_t hydroservo_GetSpeedMilliRPM(HydroServo *self);
-int32_t hydroservo_GetAngleRaw(HydroServo *self);
-int32_t hydroservo_GetAngleDeciDegrees(HydroServo *self);
-int32_t hydroservo_GetAngleMax(HydroServo *self);
-int32_t hydroservo_GetAngleMin(HydroServo *self);
-HYDROSERVO_STATUS hydroservo_GetStatus(HydroServo *self);
-
 HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed);
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle);
 void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle);
 void hydroservo_SetAngleMin(HydroServo *self, int32_t min_angle);
 void hydroservo_SetLimitsOffset(HydroServo *self, uint16_t offset);
 
+int32_t hydroservo_GetPeriodFeedback(HydroServo *self);
+int32_t hydroservo_GetSpeedMilliRPM(HydroServo *self);
+int32_t hydroservo_GetAngleRaw(HydroServo *self);
+int32_t hydroservo_AngleToDeciDegrees(HydroServo *self, int32_t angle);
+int32_t hydroservo_GetAngleMax(HydroServo *self);
+int32_t hydroservo_GetAngleMin(HydroServo *self);
+HYDROSERVO_STATUS hydroservo_GetStatus(HydroServo *self);
+
+void hydroservo_CallbackPeriodElapsed(HydroServo *self);
+void hydroservo_CallbackByFeedback(HydroServo *self);
 HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self);
-//HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm);
-HYDROSERVO_STATUS hydroservo_SearchAngleLimit(HydroServo *self, int16_t speed, uint16_t delay);
-HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm);
+HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self);
 
 #endif /* INC_SERVO_H_ */

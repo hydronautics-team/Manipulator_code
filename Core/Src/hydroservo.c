@@ -10,7 +10,7 @@ static void SetDirection_(HydroServo *self);
 static void SetPWM_(HydroServo *self);
 static void ReadAngle_(HydroServo *self);
 static void ReadSpeed_(HydroServo *self);
-static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self);
+static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed);
 
 
 void hydroservo_Init(HydroServo *self, hydroservoConfig config)
@@ -159,22 +159,18 @@ HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self)
 {
 	self->status = HYDROSERVO_CALIBRATE;
-	HYDROSERVO_STATUS status = SearchAngleLimit_(self);
+	HYDROSERVO_STATUS status = SearchAngleLimit_(self, self->config.calibrating_speed);
 	if(!status)
 	{
-		status = SearchAngleLimit_(self);
+		hydroservo_SetAngleMax(self, hydroservo_GetAngleRaw(self));
+		status = SearchAngleLimit_(self, -self->config.calibrating_speed);
+		hydroservo_SetAngleMin(self, hydroservo_GetAngleRaw(self));
 		if(!status)
 		{
-			int32_t angle = (hydroservo_GetAngleMax(self) - hydroservo_GetAngleMin(self)) / 2;
 			hydroservo_SetSpeed(self, self->config.calibrating_speed);
-			if(self->config.calibrating_speed > 0)
-			{
-				while(hydroservo_GetAngleRaw(self) < angle);
-			}
-			else
-			{
-				while(hydroservo_GetAngleRaw(self) > angle);
-			}
+			int32_t angle = (hydroservo_GetAngleMax(self) - hydroservo_GetAngleMin(self)) / 2;
+			while(hydroservo_GetAngleRaw(self) < angle);
+			hydroservo_SetSpeed(self, 0);
 			self->status = HYDROSERVO_OK;
 			return HYDROSERVO_OK;
 		}
@@ -235,10 +231,10 @@ static void ReadSpeed_(HydroServo *self)
 	self->fb_flag = 0;
 }
 
-static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self)
+static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
 {
 	int32_t angle_previous;
-	hydroservo_SetSpeed(self, self->config.calibrating_speed);
+	hydroservo_SetSpeed(self, speed);
 
 	for(int32_t i = 0; i < INT_MAX; i++)
 	{
@@ -246,15 +242,6 @@ static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self)
 		HAL_Delay(self->config.calibrating_delay);
 		if(hydroservo_GetAngleRaw(self) == angle_previous)
 		{
-			hydroservo_SetSpeed(self, 0);
-			if(self->config.calibrating_speed)
-			{
-				hydroservo_SetAngleMax(self, hydroservo_GetAngleRaw(self));
-			}
-			else
-			{
-				hydroservo_SetAngleMin(self, hydroservo_GetAngleRaw(self));
-			}
 			return HYDROSERVO_OK;
 		}
 	}

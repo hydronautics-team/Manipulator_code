@@ -14,9 +14,9 @@
 ../Core/Src/hydroservo.c:123:6:hydroservo_CallbackByFeedback	2
 ../Core/Src/hydroservo.c:133:6:hydroservo_CallbackPeriodElapsed	2
 ../Core/Src/hydroservo.c:145:19:hydroservo_CheckAngleLimits	6
-../Core/Src/hydroservo.c:159:19:hydroservo_Calibrate	6
-../Core/Src/hydroservo.c:194:13:SetDirection_	2
-../Core/Src/hydroservo.c:199:13:SetPWM_	4
-../Core/Src/hydroservo.c:205:13:ReadAngle_	2
-../Core/Src/hydroservo.c:217:13:ReadSpeed_	3
-../Core/Src/hydroservo.c:238:26:SearchAngleLimit_	4
+../Core/Src/hydroservo.c:159:19:hydroservo_Calibrate	4
+../Core/Src/hydroservo.c:190:13:SetDirection_	2
+../Core/Src/hydroservo.c:195:13:SetPWM_	4
+../Core/Src/hydroservo.c:201:13:ReadAngle_	2
+../Core/Src/hydroservo.c:213:13:ReadSpeed_	3
+../Core/Src/hydroservo.c:234:26:SearchAngleLimit_	3

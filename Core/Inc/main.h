@@ -59,7 +59,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define SRV1_FB_Pin GPIO_PIN_2
+#define SRV1_FB_Pin GPIO_PIN_1
 #define SRV1_FB_GPIO_Port GPIOA
 #define SRV2_FB_Pin GPIO_PIN_3
 #define SRV2_FB_GPIO_Port GPIOA
@@ -91,15 +91,18 @@ void Error_Handler(void);
 /* USER CODE BEGIN Private defines */
 #define SERVO1_PWM_TIM_CHANNEL TIM_CHANNEL_1
 #define SERVO2_PWM_TIM_CHANNEL TIM_CHANNEL_2
-#define SERVO1_FB_TIM_CHANNEL TIM_CHANNEL_3
-#define SERVO2_FB_TIM_CHANNEL TIM_CHANNEL_4
+#define SERVO1_FB_FALL_TIM_CHANNEL TIM_CHANNEL_1
+#define SERVO1_FB_RISE_TIM_CHANNEL TIM_CHANNEL_2
+#define SERVO2_FB_FALL_TIM_CHANNEL TIM_CHANNEL_3
+#define SERVO2_FB_RISE_TIM_CHANNEL TIM_CHANNEL_4
 #define SERVO_PWM_PERIOD 3599
 #define SERVO_FB_PERIOD 65535
-#define FB_TIMER_CLOCK 72000
+#define FB_TIMER_CLOCK 720000
 #define SERVO1_fb_impulse_per_rotate 2953
 #define SERVO2_fb_impulse_per_rotate 700 //надо померить
 #define CALIBRATING_DELAY 18
 #define SERVO_MIN_SPEED_CALIBRATING 10
+#define FB_MIN_DURATION 15
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

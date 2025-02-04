@@ -103,7 +103,7 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* htim_ic)
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**TIM2 GPIO Configuration
-    PA2     ------> TIM2_CH3
+    PA1     ------> TIM2_CH2
     PA3     ------> TIM2_CH4
     */
     GPIO_InitStruct.Pin = SRV1_FB_Pin|SRV2_FB_Pin;
@@ -187,7 +187,7 @@ void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef* htim_ic)
     __HAL_RCC_TIM2_CLK_DISABLE();
 
     /**TIM2 GPIO Configuration
-    PA2     ------> TIM2_CH3
+    PA1     ------> TIM2_CH2
     PA3     ------> TIM2_CH4
     */
     HAL_GPIO_DeInit(GPIOA, SRV1_FB_Pin|SRV2_FB_Pin);

@@ -1,7 +1,7 @@
 #include "hydroservo.h"
 #include "limits.h"
 
-#define SPEED_TO_PWM_(speed, pwm_period) (pwm_period - (speed >= 0 ? speed : -speed))
+#define SPEED_TO_PWM_(speed) (speed >= 0 ? speed : -speed)
 #define ANGLE_TO_DECIDEGREES_(angle, fb_impulse_per_rotate) ((angle * 3600) / fb_impulse_per_rotate)
 #define SPEED_TO_MILLI_RPM_(speed, fb_impulse_per_rotate, timer_clock) ((1000 * timer_clock) / (speed * fb_impulse_per_rotate))
 #define ABS_(number) (number >= 0 ? number : -number)
@@ -22,13 +22,15 @@ void hydroservo_Init(HydroServo *self, hydroservoConfig config)
 	self->fb_impulse_period = 0;
 	self->max_angle = HYDROSERVO_NO_MAX_ANGLE;
 	self->min_angle = HYDROSERVO_NO_MIN_ANGLE;
-	self->last_captured_value = 0;
+	self->last_captured_value_rise = 0;
+	self->last_captured_value_fall = 0;
 	self->fb_flag = 0;
 	hydroservo_SetSpeed(self, 0);
 
+	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb_fall);
+	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb_rise);
+	__HAL_TIM_ENABLE_IT(self->config.tim_fb, self->config.tim_channel_fb_rise);
 	HAL_TIM_PWM_Start(self->config.tim_pwm, self->config.tim_channel_pwm);
-	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb);
-	__HAL_TIM_ENABLE_IT(self->config.tim_fb, self->config.tim_channel_fb);
 	self->status = HYDROSERVO_OK;
 }
 
@@ -120,14 +122,23 @@ HYDROSERVO_STATUS hydroservo_GetStatus(HydroServo *self)
 	return self->status;
 }
 
-void hydroservo_CallbackByFeedback(HydroServo *self)
+void hydroservo_CallbackByFeedbackRise(HydroServo *self)
 {
-	if(hydroservo_CheckAngleLimits(self))
+	if(HAL_TIM_ReadCapturedValue(self->config.tim_fb, self->config.tim_channel_fb_rise) -
+			self->last_captured_value_fall > self->config.fb_min_duration)
 	{
-		hydroservo_SetSpeed(self, 0);
+		if(hydroservo_CheckAngleLimits(self))
+		{
+			hydroservo_SetSpeed(self, 0);
+		}
+		ReadSpeed_(self);
+		ReadAngle_(self);
 	}
-	ReadSpeed_(self);
-	ReadAngle_(self);
+}
+
+void hydroservo_CallbackByFeedbackFall(HydroServo *self)
+{
+	self->last_captured_value_fall = HAL_TIM_ReadCapturedValue(self->config.tim_fb, self->config.tim_channel_fb_fall);
 }
 
 void hydroservo_CallbackPeriodElapsed(HydroServo *self)
@@ -168,8 +179,8 @@ HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self)
 		if(!status)
 		{
 			hydroservo_SetSpeed(self, self->config.calibrating_speed);
-			int32_t angle = (hydroservo_GetAngleMax(self) - hydroservo_GetAngleMin(self)) / 2;
-			while(hydroservo_GetAngleRaw(self) < angle);
+			int32_t angle = (hydroservo_GetAngleMax(self) - hydroservo_GetAngleMin(self)) / 2 + hydroservo_GetAngleMin(self);
+			while(hydroservo_GetAngleRaw(self) < angle );
 			hydroservo_SetSpeed(self, 0);
 			self->status = HYDROSERVO_OK;
 			return HYDROSERVO_OK;
@@ -195,7 +206,7 @@ static void SetDirection_(HydroServo *self)
 static void SetPWM_(HydroServo *self)
 {
 	__HAL_TIM_SET_COMPARE(self->config.tim_pwm, self->config.tim_channel_pwm,
-			SPEED_TO_PWM_(self->target_speed, self->config.tim_pwm_period));
+			SPEED_TO_PWM_(self->target_speed));
 }
 
 static void ReadAngle_(HydroServo *self)
@@ -212,22 +223,22 @@ static void ReadAngle_(HydroServo *self)
 
 static void ReadSpeed_(HydroServo *self)
 {
-	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->config.tim_fb, self->config.tim_channel_fb);
+	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->config.tim_fb, self->config.tim_channel_fb_rise);
 
 	if(!self->fb_flag)
 	{
-		self->fb_impulse_period = captured_value - self->last_captured_value;
+		self->fb_impulse_period = captured_value - self->last_captured_value_rise;
 	}
-	else if (captured_value <= self->last_captured_value)
+	else if (captured_value <= self->last_captured_value_rise)
 	{
-		self->fb_impulse_period = captured_value + self->config.tim_fb_period - self->last_captured_value;
+		self->fb_impulse_period = captured_value + self->config.tim_fb_period - self->last_captured_value_rise;
 	}
 	else
 	{
 		self->fb_impulse_period = self->config.tim_fb_period;
 	}
 
-	self->last_captured_value = captured_value;
+	self->last_captured_value_rise = captured_value;
 	self->fb_flag = 0;
 }
 
@@ -242,6 +253,7 @@ static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
 		HAL_Delay(self->config.calibrating_delay);
 		if(hydroservo_GetAngleRaw(self) == angle_previous)
 		{
+			hydroservo_SetSpeed(self, 0);
 			return HYDROSERVO_OK;
 		}
 	}

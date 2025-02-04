@@ -116,8 +116,6 @@ int main(void)
   servo1_config.direction_port = SRV1_DIR_GPIO_Port;
   servo1_config.direction_pin = SRV1_DIR_Pin;
   servo1_config.fb_impulse_per_rotate = SERVO1_fb_impulse_per_rotate;
-  servo1_config.calibrating_speed = 1800;
-  servo1_config.calibrating_delay = 7;
 
   servo2_config.tim_pwm = &htim3;
   servo2_config.tim_fb = &htim2;
@@ -131,21 +129,19 @@ int main(void)
   servo2_config.direction_port = SRV2_DIR_GPIO_Port;
   servo2_config.direction_pin = SRV2_DIR_Pin;
   servo2_config.fb_impulse_per_rotate = SERVO2_fb_impulse_per_rotate;
-  servo2_config.calibrating_speed = 1800;
-  servo2_config.calibrating_delay = 7;
 
   hydroservo_Init(&servo1, servo1_config);
   hydroservo_Init(&servo2, servo2_config);
 
   HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, SET);
-  hydroservo_Calibrate(&servo1);
-  hydroservo_SetLimitsOffset(&servo1, 10);
+  hydroservo_Calibrate(&servo2, 1000);
+  hydroservo_SetLimitsOffset(&servo2, 10);
   HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, SET);
   HAL_Delay(1000);
   HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, RESET);
 
   int16_t speed = 2000;
-  hydroservo_SetSpeed(&servo1, speed);
+  hydroservo_SetSpeed(&servo2, speed);
 
   /* USER CODE END 2 */
 
@@ -173,10 +169,10 @@ int main(void)
 	  	  	  }
 	  	  	  HAL_Delay(20);
 		*/
-	  if(servo1.target_speed == 0)
+	  if(servo2.target_speed == 0)
 	  {
 		  speed *= -1;
-		  hydroservo_SetSpeed(&servo1, speed);
+		  hydroservo_SetSpeed(&servo2, speed);
 		  HAL_GPIO_TogglePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin);
 		  HAL_GPIO_TogglePin(LED_OK_GPIO_Port, LED_OK_Pin);
 	  }

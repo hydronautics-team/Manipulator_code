@@ -6,6 +6,8 @@
 #define SPEED_TO_MILLI_RPM_(speed, fb_impulse_per_rotate, timer_clock) ((1000 * timer_clock) / (speed * fb_impulse_per_rotate))
 #define ABS_(number) (number >= 0 ? number : -number)
 
+#define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 100
+
 static void SetDirection_(HydroServo *self);
 static void SetPWM_(HydroServo *self);
 static void ReadAngle_(HydroServo *self);
@@ -29,7 +31,8 @@ void hydroservo_Init(HydroServo *self, hydroservoConfig config)
 
 	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb_fall);
 	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb_rise);
-	__HAL_TIM_ENABLE_IT(self->config.tim_fb, self->config.tim_channel_fb_rise);
+	//__HAL_TIM_ENABLE_IT(self->config.tim_fb, self->config.tim_channel_fb_rise);
+	__HAL_TIM_ENABLE_IT(self->config.tim_fb, TIM_IT_UPDATE);
 	HAL_TIM_PWM_Start(self->config.tim_pwm, self->config.tim_channel_pwm);
 	self->status = HYDROSERVO_OK;
 }
@@ -167,20 +170,18 @@ HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 	}
 }
 
-HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self)
+HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self, int16_t speed)
 {
 	self->status = HYDROSERVO_CALIBRATE;
-	HYDROSERVO_STATUS status = SearchAngleLimit_(self, self->config.calibrating_speed);
+	HYDROSERVO_STATUS status = SearchAngleLimit_(self, speed);
 	if(!status)
 	{
-		hydroservo_SetAngleMax(self, hydroservo_GetAngleRaw(self));
-		status = SearchAngleLimit_(self, -self->config.calibrating_speed);
-		hydroservo_SetAngleMin(self, hydroservo_GetAngleRaw(self));
+		status = SearchAngleLimit_(self, -speed);
 		if(!status)
 		{
-			hydroservo_SetSpeed(self, self->config.calibrating_speed);
+			hydroservo_SetSpeed(self, speed);
 			int32_t angle = (hydroservo_GetAngleMax(self) - hydroservo_GetAngleMin(self)) / 2 + hydroservo_GetAngleMin(self);
-			while(hydroservo_GetAngleRaw(self) < angle );
+			while(speed > 0 ? hydroservo_GetAngleRaw(self) < angle : hydroservo_GetAngleRaw(self) > angle);
 			hydroservo_SetSpeed(self, 0);
 			self->status = HYDROSERVO_OK;
 			return HYDROSERVO_OK;
@@ -242,7 +243,7 @@ static void ReadSpeed_(HydroServo *self)
 	self->fb_flag = 0;
 }
 
-static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
+/*static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
 {
 	int32_t angle_previous;
 	hydroservo_SetSpeed(self, speed);
@@ -258,17 +259,18 @@ static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
 		}
 	}
 	return HYDROSERVO_ERROR_TIMEOUT;
-}
+}*/
 
-/*HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed, uint16_t min_speed_milli_rpm)
+static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
 {
 	if(speed)
 	{
+		uint16_t delay = 1000 * self->config.tim_fb_period / self->config.tim_fb_clock;
 		hydroservo_SetSpeed(self, speed);
-		HAL_Delay(SEARCH_ORIGIN_DELAY_MILLISECONDS_);
+		HAL_Delay(delay);
 		for(int32_t i = 0; i < INT_MAX; i++)
 		{
-			if(ABS_(hydroservo_GetSpeedMilliRPM(self)) <= min_speed_milli_rpm)
+			if(hydroservo_GetSpeedMilliRPM(self) == 0)
 			{
 				hydroservo_SetSpeed(self, 0);
 				if(speed > 0) hydroservo_SetAngleMax(self, hydroservo_GetAngleRaw(self));
@@ -278,4 +280,4 @@ static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
 		}
 		return HYDROSERVO_ERROR_TIMEOUT;
 	}else return HYDROSERVO_ERROR_INCOR_DATA;
-}*/
+}

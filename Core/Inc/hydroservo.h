@@ -43,8 +43,8 @@ typedef struct
 
 	uint16_t fb_impulse_per_rotate;
 
-	int16_t calibrating_speed;
-	uint8_t calibrating_delay;
+	//int16_t calibrating_speed;
+	//uint8_t calibrating_delay;
 	//uint8_t calibrating_stop_speed
 }hydroservoConfig;
 //может лучше hydroservo или Hydroservo
@@ -88,6 +88,6 @@ void hydroservo_CallbackPeriodElapsed(HydroServo *self);
 void hydroservo_CallbackByFeedbackRise(HydroServo *self);
 void hydroservo_CallbackByFeedbackFall(HydroServo *self);
 HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self);
-HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self);
+HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self, int16_t speed);
 
 #endif /* INC_SERVO_H_ */

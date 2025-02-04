@@ -102,7 +102,7 @@ void Error_Handler(void);
 #define SERVO2_fb_impulse_per_rotate 700 //надо померить
 #define CALIBRATING_DELAY 18
 #define SERVO_MIN_SPEED_CALIBRATING 10
-#define FB_MIN_DURATION 15
+#define FB_MIN_DURATION 50
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

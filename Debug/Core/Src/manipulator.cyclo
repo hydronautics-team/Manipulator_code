@@ -1,0 +1,4 @@
+../Core/Src/manipulator.c:10:6:manipulator_Init	1
+../Core/Src/manipulator.c:20:19:manipulator_Calibrate	2
+../Core/Src/manipulator.c:34:6:manipulator_SetOrigin	1
+../Core/Src/manipulator.c:40:19:manipulator_DoWork	2

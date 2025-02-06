@@ -24,7 +24,7 @@ typedef enum
 	HYDROSERVO_ERROR_TIMEOUT,
 	HYDROSERVO_ERROR_LIMITS,
 	HYDROSERVO_ERROR_INCOR_DATA
-}HYDROSERVO_STATUS;
+}hydroservo_Status;
 
 typedef struct
 {
@@ -46,7 +46,7 @@ typedef struct
 	//int16_t calibrating_speed;
 	//uint8_t calibrating_delay;
 	//uint8_t calibrating_stop_speed
-}hydroservoConfig;
+}hydroservo_Config;
 //может лучше hydroservo или Hydroservo
 typedef struct
 {
@@ -62,15 +62,15 @@ typedef struct
 	int32_t max_angle;
 	int32_t min_angle;
 
-	HYDROSERVO_STATUS status;
+	hydroservo_Status status;
 
-	hydroservoConfig config;
+	hydroservo_Config config;
 
 }HydroServo;
 
-void hydroservo_Init(HydroServo *self, hydroservoConfig config);
+void hydroservo_Init(HydroServo *self, hydroservo_Config config);
 
-HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed);
+hydroservo_Status hydroservo_SetSpeed(HydroServo *self, int16_t speed);
 void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle);
 void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle);
 void hydroservo_SetAngleMin(HydroServo *self, int32_t min_angle);
@@ -82,12 +82,12 @@ int32_t hydroservo_GetAngleRaw(HydroServo *self);
 int32_t hydroservo_AngleToDeciDegrees(HydroServo *self, int32_t angle);
 int32_t hydroservo_GetAngleMax(HydroServo *self);
 int32_t hydroservo_GetAngleMin(HydroServo *self);
-HYDROSERVO_STATUS hydroservo_GetStatus(HydroServo *self);
+hydroservo_Status hydroservo_GetStatus(HydroServo *self);
 
 void hydroservo_CallbackPeriodElapsed(HydroServo *self);
 void hydroservo_CallbackByFeedbackRise(HydroServo *self);
 void hydroservo_CallbackByFeedbackFall(HydroServo *self);
-HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self);
-HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self, int16_t speed);
+hydroservo_Status hydroservo_CheckAngleLimits(HydroServo *self);
+hydroservo_Status hydroservo_Calibrate(HydroServo *self, int16_t speed);
 
 #endif /* INC_SERVO_H_ */

@@ -101,8 +101,8 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  hydroservoConfig servo1_config;
-  hydroservoConfig servo2_config;
+  hydroservo_Config servo1_config;
+  hydroservo_Config servo2_config;
 
   servo1_config.tim_pwm = &htim3;
   servo1_config.tim_fb = &htim2;

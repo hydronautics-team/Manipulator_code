@@ -1,4 +1,10 @@
 ../Core/Src/manipulator.c:10:6:manipulator_Init	1
-../Core/Src/manipulator.c:20:19:manipulator_Calibrate	2
-../Core/Src/manipulator.c:34:6:manipulator_SetOrigin	1
-../Core/Src/manipulator.c:40:19:manipulator_DoWork	2
+../Core/Src/manipulator.c:16:6:manipulator_SetOrigin	1
+../Core/Src/manipulator.c:22:19:manipulator_SetCalibratingSpeed	2
+../Core/Src/manipulator.c:35:19:manipulator_SetGrabSpeed	2
+../Core/Src/manipulator.c:48:6:manipulator_SetLimitsOffset	1
+../Core/Src/manipulator.c:54:19:manipulator_Calibrate	1
+../Core/Src/manipulator.c:59:19:manipulator_SetSpeedGrab	1
+../Core/Src/manipulator.c:64:19:manipulator_SetSpeedRotate	1
+../Core/Src/manipulator.c:69:19:manipulator_OpenGrab	1
+../Core/Src/manipulator.c:74:19:manipulator_CloseGrab	1

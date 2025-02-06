@@ -12,10 +12,10 @@ static void SetDirection_(HydroServo *self);
 static void SetPWM_(HydroServo *self);
 static void ReadAngle_(HydroServo *self);
 static void ReadSpeed_(HydroServo *self);
-static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed);
+static hydroservo_Status SearchAngleLimit_(HydroServo *self, int16_t speed);
 
 
-void hydroservo_Init(HydroServo *self, hydroservoConfig config)
+void hydroservo_Init(HydroServo *self, hydroservo_Config config)
 {
 	self->config = config;
 
@@ -37,7 +37,7 @@ void hydroservo_Init(HydroServo *self, hydroservoConfig config)
 	self->status = HYDROSERVO_OK;
 }
 
-HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed)
+hydroservo_Status hydroservo_SetSpeed(HydroServo *self, int16_t speed)
 {
 	if((speed == 0) ||
 			(speed > 0 && self->current_angle < self->max_angle) ||
@@ -120,7 +120,7 @@ int32_t hydroservo_AngleToDeciDegrees(HydroServo *self, int32_t angle)
 	return ANGLE_TO_DECIDEGREES_(angle, self->config.fb_impulse_per_rotate);
 }
 
-HYDROSERVO_STATUS hydroservo_GetStatus(HydroServo *self)
+hydroservo_Status hydroservo_GetStatus(HydroServo *self)
 {
 	return self->status;
 }
@@ -156,7 +156,7 @@ void hydroservo_CallbackPeriodElapsed(HydroServo *self)
 	}
 }
 
-HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
+hydroservo_Status hydroservo_CheckAngleLimits(HydroServo *self)
 {
 	if((self->target_speed == 0) ||
 			(self->target_speed > 0 && self->current_angle < self->max_angle) ||
@@ -170,10 +170,10 @@ HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
 	}
 }
 
-HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self, int16_t speed)
+hydroservo_Status hydroservo_Calibrate(HydroServo *self, int16_t speed)
 {
 	self->status = HYDROSERVO_CALIBRATE;
-	HYDROSERVO_STATUS status = SearchAngleLimit_(self, speed);
+	hydroservo_Status status = SearchAngleLimit_(self, speed);
 	if(!status)
 	{
 		status = SearchAngleLimit_(self, -speed);
@@ -243,7 +243,7 @@ static void ReadSpeed_(HydroServo *self)
 	self->fb_flag = 0;
 }
 
-/*static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
+/*static hydroservo_Status SearchAngleLimit_(HydroServo *self, int16_t speed)
 {
 	int32_t angle_previous;
 	hydroservo_SetSpeed(self, speed);
@@ -261,7 +261,7 @@ static void ReadSpeed_(HydroServo *self)
 	return HYDROSERVO_ERROR_TIMEOUT;
 }*/
 
-static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
+static hydroservo_Status SearchAngleLimit_(HydroServo *self, int16_t speed)
 {
 	if(speed)
 	{

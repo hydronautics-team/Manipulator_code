@@ -1,74 +1,283 @@
-//в set speed принмать скорость, посмотреть что возвращают hal функции и ставить ошибку когда у них ошибка
-
 #include "hydroservo.h"
+#include "limits.h"
 
-#define SPEED_TO_PWM_(speed, pwm_period) (pwm_period - (speed >= 0 ? speed : -speed))
-#define ANGLE_TO_DECIDEGREES_(angle, fb_period) ((angle * 3600) / fb_period)
+#define SPEED_TO_PWM_(speed) (speed >= 0 ? speed : -speed)
+#define ANGLE_TO_DECIDEGREES_(angle, fb_impulse_per_rotate) ((angle * 3600) / fb_impulse_per_rotate)
+#define SPEED_TO_MILLI_RPM_(speed, fb_impulse_per_rotate, timer_clock) ((1000 * timer_clock) / (speed * fb_impulse_per_rotate))
+#define ABS_(number) (number >= 0 ? number : -number)
 
-static void SetDirection_(HydroServo *servo_self);
-static void SetPWM_(HydroServo *servo_self);
+#define SEARCH_ORIGIN_DELAY_MILLISECONDS_ 100
 
-void hydroservo_Init(HydroServo *servo_self, TIM_HandleTypeDef *htim_pwm,
-		TIM_HandleTypeDef *htim_fb, uint16_t channel_pwm, uint16_t channel_fb, uint16_t tim_pwm_period, uint16_t fb_period,
-		GPIO_TypeDef *direction_port, uint16_t direction_pin)
+static void SetDirection_(HydroServo *self);
+static void SetPWM_(HydroServo *self);
+static void ReadAngle_(HydroServo *self);
+static void ReadSpeed_(HydroServo *self);
+static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed);
+
+
+void hydroservo_Init(HydroServo *self, hydroservoConfig config)
 {
-	servo_self->tim_pwm = htim_pwm;
-	servo_self->tim_fb = htim_fb;
-	servo_self->tim_channel_pwm = channel_pwm;
-	servo_self->tim_channel_fb = channel_fb;
-	servo_self->tim_pwm_period = tim_pwm_period;
+	self->config = config;
 
-	servo_self->direction_port = direction_port;
-	servo_self->direction_pin = direction_pin;
+	self->target_angle = 0;
+	self->current_angle = 0;
+	self->fb_impulse_period = 0;
+	self->max_angle = HYDROSERVO_NO_MAX_ANGLE;
+	self->min_angle = HYDROSERVO_NO_MIN_ANGLE;
+	self->last_captured_value_rise = 0;
+	self->last_captured_value_fall = 0;
+	self->fb_flag = 0;
+	hydroservo_SetSpeed(self, 0);
 
-	servo_self->target_angle = 0;
-	servo_self->current_angle = 0;
-	servo_self->current_speed = 0;
-	servo_self->fb_period = fb_period;
-	hydroservo_SetSpeed(servo_self, 0);
+	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb_fall);
+	HAL_TIM_IC_Start_IT(self->config.tim_fb, self->config.tim_channel_fb_rise);
+	//__HAL_TIM_ENABLE_IT(self->config.tim_fb, self->config.tim_channel_fb_rise);
+	__HAL_TIM_ENABLE_IT(self->config.tim_fb, TIM_IT_UPDATE);
+	HAL_TIM_PWM_Start(self->config.tim_pwm, self->config.tim_channel_pwm);
+	self->status = HYDROSERVO_OK;
 }
 
-void hydroservo_SetSpeed(HydroServo *servo_self, int16_t speed)
+HYDROSERVO_STATUS hydroservo_SetSpeed(HydroServo *self, int16_t speed)
 {
-	servo_self->target_speed = speed;
-	SetDirection_(servo_self);
-	SetPWM_(servo_self);
-}
-
-int32_t hydroservo_GetAngleRaw(HydroServo *servo_self)
-{
-	return servo_self->current_angle;
-}
-
-int32_t hydroservo_GetAngleDeciDegrees(HydroServo *servo_self)
-{
-	return ANGLE_TO_DECIDEGREES_(servo_self->current_angle, servo_self->fb_period);
-}
-
-void hydroservo_CallbackByFeedback(HydroServo *servo_self)
-{
-	if(servo_self->target_speed >= 0)
+	if((speed == 0) ||
+			(speed > 0 && self->current_angle < self->max_angle) ||
+			(speed < 0 && self->current_angle > self->min_angle))
 	{
-		servo_self->current_angle++;
+		self->target_speed = speed;
+		SetDirection_(self);
+		SetPWM_(self);
+		return HYDROSERVO_OK;
 	}
 	else
 	{
-		servo_self->current_angle--;
+		return HYDROSERVO_ERROR_LIMITS;
 	}
 }
 
-static void SetDirection_(HydroServo *servo_self)
+void hydroservo_SetOrigin(HydroServo *self, int32_t origin_angle)
 {
-	if(servo_self->target_speed >= 0)
+	self->current_angle -= origin_angle;
+	self->max_angle -= origin_angle;
+	self->min_angle -= origin_angle;
+}
+
+void hydroservo_SetAngleMax(HydroServo *self, int32_t max_angle)
+{
+	self->max_angle = max_angle;
+}
+
+void hydroservo_SetAngleMin(HydroServo *self, int32_t min_angle)
+{
+	self->min_angle = min_angle;
+}
+
+void hydroservo_SetLimitsOffset(HydroServo *self, uint16_t offset)
+{
+	hydroservo_SetAngleMax(self, hydroservo_GetAngleMax(self) - offset);
+	hydroservo_SetAngleMin(self, hydroservo_GetAngleMin(self) + offset);
+}
+
+int32_t hydroservo_GetAngleRaw(HydroServo *self)
+{
+	return self->current_angle;
+}
+
+int32_t hydroservo_GetAngleMax(HydroServo *self)
+{
+	return self->max_angle;
+}
+
+int32_t hydroservo_GetAngleMin(HydroServo *self)
+{
+	return self->min_angle;
+}
+
+int32_t hydroservo_GetPeriodFeedback(HydroServo *self)
+{
+	return self->fb_impulse_period;
+}
+
+int32_t hydroservo_GetSpeedMilliRPM(HydroServo *self)
+{
+	if(self->fb_impulse_period == self->config.tim_fb_period || self->target_speed == 0)
 	{
-		HAL_GPIO_WritePin(servo_self->direction_port, servo_self->direction_pin, SET);
+		return 0;
+	}
+	else if(self->fb_impulse_period != 0)
+	{
+		return self->target_speed > 0 ?
+			SPEED_TO_MILLI_RPM_(self->fb_impulse_period, self->config.fb_impulse_per_rotate, self->config.tim_fb_clock) :
+			-SPEED_TO_MILLI_RPM_(self->fb_impulse_period, self->config.fb_impulse_per_rotate, self->config.tim_fb_clock);
 	}
 	else
 	{
-		HAL_GPIO_WritePin(servo_self->direction_port, servo_self->direction_pin, RESET);
+		return self->target_speed > 0 ? INT_MAX : INT_MIN;
 	}
 }
-static void SetPWM_(HydroServo *servo_self)
+
+int32_t hydroservo_AngleToDeciDegrees(HydroServo *self, int32_t angle)
 {
-	__HAL_TIM_SET_COMPARE(servo_self->tim_pwm, servo_self->tim_channel_pwm, SPEED_TO_PWM_(servo_self->target_speed, servo_self->tim_pwm_period));
+	return ANGLE_TO_DECIDEGREES_(angle, self->config.fb_impulse_per_rotate);
+}
+
+HYDROSERVO_STATUS hydroservo_GetStatus(HydroServo *self)
+{
+	return self->status;
+}
+
+void hydroservo_CallbackByFeedbackRise(HydroServo *self)
+{
+	if(HAL_TIM_ReadCapturedValue(self->config.tim_fb, self->config.tim_channel_fb_rise) -
+			self->last_captured_value_fall > self->config.fb_min_duration)
+	{
+		if(hydroservo_CheckAngleLimits(self))
+		{
+			hydroservo_SetSpeed(self, 0);
+		}
+		ReadSpeed_(self);
+		ReadAngle_(self);
+	}
+}
+
+void hydroservo_CallbackByFeedbackFall(HydroServo *self)
+{
+	self->last_captured_value_fall = HAL_TIM_ReadCapturedValue(self->config.tim_fb, self->config.tim_channel_fb_fall);
+}
+
+void hydroservo_CallbackPeriodElapsed(HydroServo *self)
+{
+	if(self->fb_flag)
+	{
+		self->fb_impulse_period = self->config.tim_fb_period;
+	}
+	else
+	{
+		self->fb_flag = 1;
+	}
+}
+
+HYDROSERVO_STATUS hydroservo_CheckAngleLimits(HydroServo *self)
+{
+	if((self->target_speed == 0) ||
+			(self->target_speed > 0 && self->current_angle < self->max_angle) ||
+			(self->target_speed < 0 && self->current_angle > self->min_angle))
+	{
+		return HYDROSERVO_OK;
+	}
+	else
+	{
+		return HYDROSERVO_ERROR_LIMITS;
+	}
+}
+
+HYDROSERVO_STATUS hydroservo_Calibrate(HydroServo *self, int16_t speed)
+{
+	self->status = HYDROSERVO_CALIBRATE;
+	HYDROSERVO_STATUS status = SearchAngleLimit_(self, speed);
+	if(!status)
+	{
+		status = SearchAngleLimit_(self, -speed);
+		if(!status)
+		{
+			hydroservo_SetSpeed(self, speed);
+			int32_t angle = (hydroservo_GetAngleMax(self) - hydroservo_GetAngleMin(self)) / 2 + hydroservo_GetAngleMin(self);
+			while(speed > 0 ? hydroservo_GetAngleRaw(self) < angle : hydroservo_GetAngleRaw(self) > angle);
+			hydroservo_SetSpeed(self, 0);
+			self->status = HYDROSERVO_OK;
+			return HYDROSERVO_OK;
+		}
+		else
+		{
+			self->status = HYDROSERVO_OK;
+			return status;
+		}
+	}
+	else
+	{
+		self->status = HYDROSERVO_OK;
+		return status;
+	}
+}
+
+static void SetDirection_(HydroServo *self)
+{
+	if(self->target_speed >= 0) HAL_GPIO_WritePin(self->config.direction_port, self->config.direction_pin, SET);
+	else HAL_GPIO_WritePin(self->config.direction_port, self->config.direction_pin, RESET);
+}
+static void SetPWM_(HydroServo *self)
+{
+	__HAL_TIM_SET_COMPARE(self->config.tim_pwm, self->config.tim_channel_pwm,
+			SPEED_TO_PWM_(self->target_speed));
+}
+
+static void ReadAngle_(HydroServo *self)
+{
+	if(self->target_speed >= 0)
+	{
+		self->current_angle++;
+	}
+	else
+	{
+		self->current_angle--;
+	}
+}
+
+static void ReadSpeed_(HydroServo *self)
+{
+	uint16_t captured_value = HAL_TIM_ReadCapturedValue(self->config.tim_fb, self->config.tim_channel_fb_rise);
+
+	if(!self->fb_flag)
+	{
+		self->fb_impulse_period = captured_value - self->last_captured_value_rise;
+	}
+	else if (captured_value <= self->last_captured_value_rise)
+	{
+		self->fb_impulse_period = captured_value + self->config.tim_fb_period - self->last_captured_value_rise;
+	}
+	else
+	{
+		self->fb_impulse_period = self->config.tim_fb_period;
+	}
+
+	self->last_captured_value_rise = captured_value;
+	self->fb_flag = 0;
+}
+
+/*static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
+{
+	int32_t angle_previous;
+	hydroservo_SetSpeed(self, speed);
+
+	for(int32_t i = 0; i < INT_MAX; i++)
+	{
+		angle_previous = hydroservo_GetAngleRaw(self);
+		HAL_Delay(self->config.calibrating_delay);
+		if(hydroservo_GetAngleRaw(self) == angle_previous)
+		{
+			hydroservo_SetSpeed(self, 0);
+			return HYDROSERVO_OK;
+		}
+	}
+	return HYDROSERVO_ERROR_TIMEOUT;
+}*/
+
+static HYDROSERVO_STATUS SearchAngleLimit_(HydroServo *self, int16_t speed)
+{
+	if(speed)
+	{
+		uint16_t delay = 1000 * self->config.tim_fb_period / self->config.tim_fb_clock;
+		hydroservo_SetSpeed(self, speed);
+		HAL_Delay(delay);
+		for(int32_t i = 0; i < INT_MAX; i++)
+		{
+			if(hydroservo_GetSpeedMilliRPM(self) == 0)
+			{
+				hydroservo_SetSpeed(self, 0);
+				if(speed > 0) hydroservo_SetAngleMax(self, hydroservo_GetAngleRaw(self));
+				else hydroservo_SetAngleMin(self, hydroservo_GetAngleRaw(self));
+				return HYDROSERVO_OK;
+			}
+		}
+		return HYDROSERVO_ERROR_TIMEOUT;
+	}else return HYDROSERVO_ERROR_INCOR_DATA;
 }

@@ -38,6 +38,7 @@
 /* USER CODE BEGIN PM */
 
 /* USER CODE END PM */
+
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -49,6 +50,7 @@ uint8_t transmitBuffer[BUFFER_SIZE];
 uint8_t receiveBuffer[BUFFER_SIZE];
 HydroServo servo1;
 HydroServo servo2;
+int16_t speed = 0;;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -99,14 +101,48 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  hydroservo_Init(&servo1, &htim3, &htim2, SERVO1_PWM_TIM_CHANNEL, SERVO1_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO1_FB_PERIOD, SRV1_PWM_GPIO_Port, SRV1_DIR_Pin);
-  hydroservo_Init(&servo2, &htim3, &htim2, SERVO2_PWM_TIM_CHANNEL, SERVO2_FB_TIM_CHANNEL, SERVO_PWM_PERIOD, SERVO2_FB_PERIOD, SRV2_PWM_GPIO_Port, SRV2_DIR_Pin);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
-  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
-  hydroservo_SetSpeed(&servo1, 3599);
-  hydroservo_SetSpeed(&servo2, -600);
+  hydroservoConfig servo1_config;
+  hydroservoConfig servo2_config;
+
+  servo1_config.tim_pwm = &htim3;
+  servo1_config.tim_fb = &htim2;
+  servo1_config.tim_channel_pwm = SERVO1_PWM_TIM_CHANNEL;
+  servo1_config.tim_channel_fb_rise = SERVO1_FB_RISE_TIM_CHANNEL;
+  servo1_config.tim_channel_fb_fall = SERVO1_FB_FALL_TIM_CHANNEL;
+  servo1_config.tim_pwm_period = SERVO_PWM_PERIOD;
+  servo1_config.tim_fb_period = SERVO_FB_PERIOD;
+  servo1_config.tim_fb_clock = FB_TIMER_CLOCK;
+  servo1_config.fb_min_duration = FB_MIN_DURATION;
+  servo1_config.direction_port = SRV1_DIR_GPIO_Port;
+  servo1_config.direction_pin = SRV1_DIR_Pin;
+  servo1_config.fb_impulse_per_rotate = SERVO1_fb_impulse_per_rotate;
+
+  servo2_config.tim_pwm = &htim3;
+  servo2_config.tim_fb = &htim2;
+  servo2_config.tim_channel_pwm = SERVO2_PWM_TIM_CHANNEL;
+  servo2_config.tim_channel_fb_rise = SERVO2_FB_RISE_TIM_CHANNEL;
+  servo2_config.tim_channel_fb_fall = SERVO2_FB_FALL_TIM_CHANNEL;
+  servo2_config.tim_pwm_period = SERVO_PWM_PERIOD;
+  servo2_config.tim_fb_period = SERVO_FB_PERIOD;
+  servo2_config.tim_fb_clock = FB_TIMER_CLOCK;
+  servo2_config.fb_min_duration = FB_MIN_DURATION;
+  servo2_config.direction_port = SRV2_DIR_GPIO_Port;
+  servo2_config.direction_pin = SRV2_DIR_Pin;
+  servo2_config.fb_impulse_per_rotate = SERVO2_fb_impulse_per_rotate;
+
+  hydroservo_Init(&servo1, servo1_config);
+  hydroservo_Init(&servo2, servo2_config);
+
+  HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, SET);
+  hydroservo_Calibrate(&servo2, 1000);
+  hydroservo_SetLimitsOffset(&servo2, 10);
+  HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, SET);
+  HAL_Delay(1000);
+  HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, RESET);
+
+  int16_t speed = 2000;
+  hydroservo_SetSpeed(&servo2, speed);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -133,17 +169,14 @@ int main(void)
 	  	  	  }
 	  	  	  HAL_Delay(20);
 		*/
-	  if(hydroservo_GetAngleRaw(&servo2) <= -800)
+	  if(servo2.target_speed == 0)
 	  {
-		  hydroservo_SetSpeed(&servo2, 0);
+		  speed *= -1;
+		  hydroservo_SetSpeed(&servo2, speed);
+		  HAL_GPIO_TogglePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin);
+		  HAL_GPIO_TogglePin(LED_OK_GPIO_Port, LED_OK_Pin);
 	  }
-
-	  if(hydroservo_GetAngleDeciDegrees(&servo1) >= 3600)
-	  {
-	  		  hydroservo_SetSpeed(&servo1, 0);
-	  }
-
-
+	  //hydroservo_SetSpeed(&servo1, speed);
   }
     /* USER CODE END WHILE */
 
@@ -209,7 +242,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 1000;
+  htim2.Init.Prescaler = 100;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -224,14 +257,28 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
   if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
   }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
@@ -278,7 +325,7 @@ static void MX_TIM3_Init(void)
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
@@ -376,21 +423,50 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-//перетащить внутрянку в отдельную функцию
 //сделать обработку от шумов
+
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM2)
     {
+        if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+        {
+        	hydroservo_CallbackByFeedbackFall(&servo1);
+        }
+        if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+        {
+        	hydroservo_CallbackByFeedbackRise(&servo1);
+        }
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
         {
-        	hydroservo_CallbackByFeedback(&servo1);
+        	hydroservo_CallbackByFeedbackFall(&servo2);
         }
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
         {
-        	hydroservo_CallbackByFeedback(&servo2);
+        	hydroservo_CallbackByFeedbackRise(&servo2);
         }
     }
+}
+
+/*void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM2)
+    {
+        if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3 &&
+        		HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3) - HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_4) > INC_FB_GAP)
+        {
+            	hydroservo_CallbackByFeedbackRise(&servo1);
+        }
+    }
+}*/
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM2)
+	{
+		hydroservo_CallbackPeriodElapsed(&servo1);
+		hydroservo_CallbackPeriodElapsed(&servo2);
+	}
 }
 
 /* USER CODE END 4 */

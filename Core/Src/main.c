@@ -46,8 +46,7 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-uint8_t transmitBuffer[BUFFER_SIZE];
-uint8_t receiveBuffer[BUFFER_SIZE];
+uint8_t receiveBuffer;
 HydroServo servo1;
 HydroServo servo2;
 int16_t speed = 0;;
@@ -134,14 +133,11 @@ int main(void)
   hydroservo_Init(&servo2, servo2_config);
 
   HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, SET);
-  hydroservo_Calibrate(&servo2, 1000);
-  hydroservo_SetLimitsOffset(&servo2, 10);
+  hydroservo_Calibrate(&servo2, SERVO_CALIBRATING_SPEED);
+  hydroservo_SetLimitsOffset(&servo2, 100);
   HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, SET);
-  HAL_Delay(1000);
   HAL_GPIO_WritePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin, RESET);
-
-  int16_t speed = 2000;
-  hydroservo_SetSpeed(&servo2, speed);
+  HAL_UART_Receive_IT(&huart1, &receiveBuffer, 1);
 
   /* USER CODE END 2 */
 
@@ -149,34 +145,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  /*HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, RESET);
-	  	  	  HAL_UART_Receive_IT(&huart1, receiveBuffer, BUFFER_SIZE);
-	  	  	  if(receiveBuffer[0] == 'a')
-	  	  	  {
-	  	  		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, SET);
-	  	  	  }
-	  	  	  if(receiveBuffer[0] == 'b')
-	  	  	  {
-	  	  		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, RESET);
-	  	  	  }
-	  	  	  if(receiveBuffer[0] == 'c')
-	  	  	  {
-	  	  		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, SET);
-	  	  	  }
-	  	  	  if(receiveBuffer[0] == 'd')
-	  	  	  {
-	  	  		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, RESET);
-	  	  	  }
-	  	  	  HAL_Delay(20);
-		*/
-	  if(servo2.target_speed == 0)
-	  {
-		  speed *= -1;
-		  hydroservo_SetSpeed(&servo2, speed);
-		  HAL_GPIO_TogglePin(LED_ERROR_GPIO_Port, LED_ERROR_Pin);
-		  HAL_GPIO_TogglePin(LED_OK_GPIO_Port, LED_OK_Pin);
-	  }
-	  //hydroservo_SetSpeed(&servo1, speed);
+
   }
     /* USER CODE END WHILE */
 
@@ -466,6 +435,37 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	{
 		hydroservo_CallbackPeriodElapsed(&servo1);
 		hydroservo_CallbackPeriodElapsed(&servo2);
+	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart == &huart1)
+	{
+		  HAL_UART_Receive_IT(&huart1, &receiveBuffer, 1);
+		  switch(receiveBuffer)
+		  {
+		  case '0':
+			  hydroservo_SetSpeed(&servo1, 0);
+			  hydroservo_SetSpeed(&servo2, 0);
+			  break;
+		  case '1':
+			  hydroservo_SetSpeed(&servo1, SERVO_SPEED_ROTATION);
+			  hydroservo_SetSpeed(&servo2, 0);
+			  break;
+		  case '2':
+			  hydroservo_SetSpeed(&servo1, -SERVO_SPEED_ROTATION);
+			  hydroservo_SetSpeed(&servo2, 0);
+			  break;
+		  case '3':
+			  hydroservo_SetSpeed(&servo1, 0);
+			  hydroservo_SetSpeed(&servo2, SERVO_SPEED_GRAB);
+			  break;
+		  case '4':
+			  hydroservo_SetSpeed(&servo1, 0);
+			  hydroservo_SetSpeed(&servo2, -SERVO_SPEED_GRAB);
+			  break;
+		  }
 	}
 }
 

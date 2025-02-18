@@ -100,9 +100,10 @@ void Error_Handler(void);
 #define FB_TIMER_CLOCK 720000
 #define SERVO1_fb_impulse_per_rotate 2953
 #define SERVO2_fb_impulse_per_rotate 700 //надо померить
-#define CALIBRATING_DELAY 18
-#define SERVO_MIN_SPEED_CALIBRATING 10
 #define FB_MIN_DURATION 50
+#define SERVO_SPEED_GRAB 3599
+#define SERVO_SPEED_ROTATION 3599
+#define SERVO_CALIBRATING_SPEED 2000
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
